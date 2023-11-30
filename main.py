@@ -259,7 +259,7 @@ if __name__ == "__main__":
         buyRate = config["buy_rate"]
         sellRate = config["sell_rate"]
         stopLoss = config["stop_loss"]
-        masterFilePath = config["filePath"]
+        masterFilePath = config["masterFilePath"]
 
         useTradeAlgorithm = False
 
