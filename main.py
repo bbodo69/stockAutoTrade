@@ -370,6 +370,9 @@ if __name__ == "__main__":
 
             sender_collection.SendEmail(sSubject, {BizError}, {}, sSender, lstReceiver)
         print("complete")
+
+        # 매수, 매도 진행 후 KOSPI 필터링 정보 JSON 파일 저장. process.ValidateStocks.saveSortingCode(saveFilePath) 함수 사용 밑에 넣기
+    
     except Exception as e:
         # if datetime.datetime.now().hour < 16:
         #     os.system("shutdown -s -t 60")
