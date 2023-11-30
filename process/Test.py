@@ -62,4 +62,6 @@ sampleCnt = 300
 
 df = excel_collection.readExcelToDataFrame(masterFilePath, sheetName)  # 코스피 코드 받아오기
 
+os.remove(saveFilePath)
+
 df.to_json(saveFilePath, orient="records")
