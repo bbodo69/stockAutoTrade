@@ -10,16 +10,15 @@ import module.GoogleDriveDownload as gdd
 import module.excel_collection as excel_ceollection
 import module.LoadConfig as LoadConfig
 import module.sender_collection as sender_collection
+import json
+import os
 
 
 class MyWindow(QMainWindow):
     # QMainWindow 를 상속
     delay = 3.6
 
-    def __init__(self):
-        
-        # 구글 드라이브 에서 마스터 파일 다운로드
-        gdd.GoogleDriveDownload('1efNPLvql1k2J4hrqO7EjJMDQiALhBiFJ', 'Master.xlsx')
+    def __init__(self): # 기본값 설정
 
         ####### 계좌 관련 변수
         self.deposit = 0
@@ -240,12 +239,26 @@ if __name__ == "__main__":
         app = QApplication(sys.argv)
         myWindow = MyWindow()
 
+        # 구글 드라이브 에서 마스터 파일 다운로드
+        gdd.GoogleDriveDownload('1efNPLvql1k2J4hrqO7EjJMDQiALhBiFJ', 'Master.xlsx')
+
+        # Load json file, key와 value 형태로 저장
+        config_filePath = "config.json"
+        isConfigFile = os.path.isfile(config_filePath)
+        if isConfigFile :
+            with open(config_filePath, 'rt', encoding='UTF8') as json_file:
+            config = json.load(json_file)
+        else :
+            print("config 파일 미존재")
+
         # 변수저장
-        amount = 1000000
-        account_num = "5985965411" # 계좌번호
-        account_num = "8044919211"  # 계좌번호
-        buyRate = 0.995
-        sellRate = 1.025
+        amount = config["order_price"] # 주문 총 금액
+        account_num = config["account_num"] # 계좌번호
+        buyFlag = config["buy_flag"]
+        buyRate = config["buy_rate"]
+        sellRate = config["sell_rate"]
+        stopLoss = config["stop_loss"]
+        masterFilePath = config["filePath"]
 
         useTradeAlgorithm = False
 
@@ -258,19 +271,19 @@ if __name__ == "__main__":
 
         # 계좌정보 가져오기 (계좌)
         print('계좌정보 : {0}'.format(myWindow.get_account_info()))
+        if not account_num in myWindow.get_account_info() :
+            print("config 입력 계좌번호 미존재")
 
         # 예수금 가져오기
         myWindow.get_deposit(account_num)
         print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
 
-        dfBuyList = excel_ceollection.readExcelToDataFrame('output/resultMVCode.xlsx', 'result')
+        # dfBuyList = excel_ceollection.readExcelToDataFrame('output/resultMVCode.xlsx', 'result')
         dicConfig = LoadConfig.loadConfig()
 
+        dfBuyList = pd.read_json(masterFilePath)
 
         while(True):
-            # 매수 플래그 지정
-            buyFlag = True
-
             if datetime.datetime.now().hour >= 16:
                 print(datetime.datetime.now().hour)
                 break
