@@ -92,6 +92,7 @@ class MyWindow(QMainWindow):
 
     def receive_trdata(self, screen_no, rqname, trcode, recordname, sPrevNext, data_len, err_code, msg1, msg2):
 
+        # 키움 API 는 요청, 수신으로 진행되기 때문에, 각 함수에 ret 값을 넣기가 어려움. 그래서 각 요청에 대한 수신값을 global 변수에 넣어서 저장해주고, 이것을 main 에서 사용
         global account_stock_dict
         global deposit
         global out_deposit
@@ -278,9 +279,7 @@ if __name__ == "__main__":
         myWindow.get_deposit(account_num)
         print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
 
-        # dfBuyList = excel_ceollection.readExcelToDataFrame('output/resultMVCode.xlsx', 'result')
-        dicConfig = LoadConfig.loadConfig()
-
+        # "code" 열에 종목 코드 존재
         dfBuyList = pd.read_json(masterFilePath)
 
         while(True):
@@ -289,10 +288,7 @@ if __name__ == "__main__":
                 break
 
             # 매도 진행, 계좌의 보유종목 조회
-            myWindow.detail_account_mystock(account_num, 0)
-
-            if dicConfig['AutoTrade'] != 1:
-                buyFlag = False
+            myWindow.detail_account_mystock(account_num, 0) # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
 
             if stocksCnt > 20:
                 buyFlag = False
