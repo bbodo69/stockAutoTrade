@@ -33,15 +33,6 @@ dfCode = dataProcessing.GetStockPrice("009320", 250)
 # print(dataProcessing.dicMAUpCrossPoint(dfCode, 10, 60))
 # module.Image.TestSaveImage(imgFolderPath, "009320", dfCode, {'2023.11.01':1425})
 
-for i in range(3, 5) :
-    print(i)
+saveFilePath = "masterTest.json"
 
-dicTest = {}
-dicTest[1] = {}
-dicTest[1]['color'] = 'green'
-dicTest[1]['가격'] = 2222
-print(dicTest)
-print(dicTest[1].keys())
-
-if 'color' in dicTest[1].keys() :
-    print(1)
+dfCode.to_json(saveFilePath, orient="records")
