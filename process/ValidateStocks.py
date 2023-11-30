@@ -69,6 +69,7 @@ def saveSortingCode(saveFilePath) :
             dfResult.loc[len(dfResult)] = rowData
             
     # dfResult -> json 파일 변환
+    os.remove(saveFilePath)
     dfResult.to_json(saveFilePath, orient="records")
     
 def createGraphLineAndScatter(MA):
