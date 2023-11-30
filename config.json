@@ -1,0 +1,11 @@
+{
+  "account_num": "0000",
+  "account_PW": "0000",
+  "masterFilePath": "test\test.json",
+  "buy_flag": True,
+  "buy_rate": 0.99,
+  "sell_rate": 1.015,
+  "stop_loss": 0.95,
+  "order_price": 100000,
+  "key_sample": "value_sample"
+}
