@@ -1393,3 +1393,28 @@ def CrossDateStockPriceAndMV(df, dfMA, gubun) :
                 tmp = False
     
     return dicResult
+
+def dateOfBetweenTwoMV(df, dfLongMA, dfShortMA) :
+    '''
+    주가가 긴 이동평균선 아래, 짧은 이동평균선 위에 존재하는 날짜들을 return
+    :param df: 네이버 주식정보
+    :param dfLongMA : 기간이 긴 이동평균선 DF
+    :param dfShortMA : 기간이 짧은 이동평균선 DF
+    :return dicResult : 2중 딕셔너리 : 키 = 날짜, 값 = [가격, 구분], ex) dicResult['20231106']['가격'] = 1385
+    '''
+
+    dicResult = {}
+
+    for idx, row in df.iterrows():
+        if idx > len(dfLongMA) :
+            break
+        currentPrice = df.loc[idx]['종가']
+        longPrice = dfLongMA.loc[idx]['종가']
+        shortPrice = dfShortMA.loc[idx]['종가']
+        date = df.loc[idx]['날짜']
+
+        if currentPrice < longPrice and currentPrice > shortPrice :
+            dicResult[date] = {}
+            dicResult[date].update({"가격": currentPrice})
+    
+    return dicResult
