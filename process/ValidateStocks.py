@@ -39,6 +39,39 @@ df = excel_collection.readExcelToDataFrame(masterFilePath, sheetName)  # 코스�
 if sampleCnt == 0 :
     sampleCnt = len(df)
 
+def saveSortingCode(saveFilePath) :
+    '''
+    
+    '''
+    # 변수 지정
+
+    # KOSPI DF 저장
+    dfCode = pd.DataFrame()
+    
+    # dfKOSPI 에 조건 부합 Code 분류
+    for idx, row in dfCode.iterrows():
+        code = i["code"]
+        # 초기화
+        dfCode = dataProcessing.GetStockPrice(row['code'], 1)
+        dfDateKey = dfCode.set_index('날짜')
+        
+        dicScatterDate = {}
+        imgFilePath = os.path.join(imgFolderPath, row['code'])
+        MVInfo = []
+        dicIfResult = {}
+        # 배당락, 병합, 분할 표준화
+        dfCode = dataProcessing.standardizationStockSplit(dfCode)
+        targetDate = datetime.datetime.now().strftime('%Y.%m.%d')
+        dfMA = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
+
+        startTime = time.time()
+        
+        # 네이버에서 종목별 주식 정보 가져오기
+    
+
+    # df -> json 저장
+    pass
+
 def createGraphLineAndScatter(MA):
     '''
     조건 설정
