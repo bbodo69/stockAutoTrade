@@ -35,4 +35,31 @@ dfCode = dataProcessing.GetStockPrice("009320", 250)
 
 saveFilePath = "masterTest.json"
 
-dfCode.to_json(saveFilePath, orient="records")
+
+rootPath = 'C:\Python_Stocks'
+inputFolderPath = os.path.join(rootPath, 'input')
+outputFolderPath = os.path.join(rootPath, 'output')
+resultFolderPath = os.path.join(rootPath, 'result')
+imgFolderPath = os.path.join(rootPath, 'imgMV')
+
+masterFilePath = os.path.join(inputFolderPath, 'Master.xlsx')
+sheetName = 'KOSPI'
+resultFilePath = os.path.join(resultFolderPath, 'result.xlsx')
+
+# dfTotal = pd.DataFrame(columns=['종목코드', 'totalCnt', 'totalCnt0', 'totalCnt1', 'totalCnt2', 'period', 'avgPeriod'])
+
+cntIdx = 0
+avgSellPriod = 0
+totalSellPeriod = 0
+
+totalCnt = 0
+totalBuyCnt = 0
+totalSellBenefitCnt = 0
+totalSellStopLoss = 0
+sampleCnt = 300
+
+# 이동평균 증감 패턴에 따른 과거 데이터 매도 매수 파악
+
+df = excel_collection.readExcelToDataFrame(masterFilePath, sheetName)  # 코스피 코드 받아오기
+
+df.to_json(saveFilePath, orient="records")
