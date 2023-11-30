@@ -330,7 +330,7 @@ if __name__ == "__main__":
             if buyFlag :
                 for idx, row in dfBuyList.iterrows():
                     try:
-                        if deposit < 1000000:
+                        if deposit < amount:
                             break
                         code = row['code']
                         # dfMinute = dataProcessing.GetStockPriceMinute(code)
@@ -348,7 +348,7 @@ if __name__ == "__main__":
 
                         quantity = amount // buyPrice
 
-                        if buyPrice is None: # 연속 하락 확인
+                        if buyPrice is None:
                             continue
                         if code in account_stock_dict: # 보유 종목에 대해서 매수 진행 X
                             continue
