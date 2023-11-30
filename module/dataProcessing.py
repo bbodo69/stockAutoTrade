@@ -1418,3 +1418,24 @@ def dateOfBetweenTwoMV(df, dfLongMA, dfShortMA) :
             dicResult[date].update({"가격": currentPrice})
     
     return dicResult
+
+def isBetweenTwoMV(df, dfLongMA, dfShortMA, day) :
+    '''
+    주가가 긴 이동평균선 아래, 짧은 이동평균선 위에 존재하는 날짜들을 return
+    :param df: 네이버 주식정보
+    :param dfLongMA : 기간이 긴 이동평균선 DF
+    :param dfShortMA : 기간이 짧은 이동평균선 DF
+    :param day : df idx 0일자, 현재일 기준 + day 전일에 대해 조건을 구함
+    :return 두 이평선 사이에 주가가 있으면 True, 그렇지 않으면 False
+    '''
+
+    currentPrice = df.loc[0+day]['종가']
+    longPrice = dfLongMA.loc[0+day]['종가']
+    shortPrice = dfShortMA.loc[0+day]['종가']
+
+    if currentPrice < longPrice and currentPrice > shortPrice :
+        return True
+    else :
+        return False
+  
+
