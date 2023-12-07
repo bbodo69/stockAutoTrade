@@ -28,6 +28,9 @@ lstResult = []
 for idx, row in df.iterrows() :
   # 종목 시세 데이터 가져오기
   dfCode = dataProcessing.GetStockPrice(row['code'], 30)
+
+  print(dfCode)
+  
   dfShortMA = dataProcessing.GetMovingAverageRetDF(dfCode, 10)
   dfLongMA = dataProcessing.GetMovingAverageRetDF(dfCode, 100)
   
