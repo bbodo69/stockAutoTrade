@@ -28,6 +28,7 @@ lstResult = []
 for idx, row in df.iterrows() :
   # 종목 시세 데이터 가져오기
   dfCode = dataProcessing.GetStockPrice(row['code'], 110)
+  dfCode = dataProcessing.standardizationStockSplit(dfCode)
 
   dfShortMA = dataProcessing.GetMovingAverageRetDF(dfCode, 10)
   dfLongMA = dataProcessing.GetMovingAverageRetDF(dfCode, 100)
@@ -37,6 +38,9 @@ for idx, row in df.iterrows() :
   print("{0} |||| {1}".format(len(df), idx+1))
   
   if isFlag :
+    imgFolderPath = os.path.join(rootPath, 'img_Confirm')
+    imgFilePath = os.path.join(imgFolderPath, row['code'])
     lstResult.append(row['code'])
+    Image.SaveDFImage(row['code'], dfCode, imgFilePath)
 
 print("전체 : {0}, 대상 : {1}".format(len(df), len(lstResult)))
