@@ -19,6 +19,7 @@ imgFolderPath = os.path.join(rootPath, 'imgMV')
 masterFilePath = os.path.join(inputFolderPath, 'Master.xlsx')
 
 # 코스피 종목 받아오기
+sheetName = 'KOSPI'
 df = excel_collection.readExcelToDataFrame(masterFilePath, sheetName)
 
 for idx, row in df.itertools() :
