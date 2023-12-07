@@ -34,6 +34,8 @@ for idx, row in df.iterrows() :
   
   isFlag = dataProcessing.isBetweenTwoMV(dfCode, dfLongMA, dfShortMA, 0)
 
+  print("{0} |||| {1}".format(len(df), idx+1))
+  
   if isFlag :
     lstResult.append(row['code'])
 
