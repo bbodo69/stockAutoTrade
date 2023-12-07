@@ -34,4 +34,4 @@ for idx, row in df.iterrows() :
   if isFlag :
     lstResult.append(row['code'])
 
-print("전체 : {0}, 대상 : {1}".format(len(df), len(lstResult))
+print("전체 : {0}, 대상 : {1}".format(len(df), len(lstResult)))
