@@ -28,8 +28,10 @@ lstResult = []
 for idx, row in df.iterrows() :
   # 종목 시세 데이터 가져오기
   dfCode = dataProcessing.GetStockPrice(row['code'], 30)
+  dfShortMA = dataProcessing.GetMovingAverageRetDF(dfCode, 10)
+  dfLongMA = dataProcessing.GetMovingAverageRetDF(dfCode, 100)
   
-  isFlag = dataProcessing.isBetweenTwoMV(dfCode, 100, 10, 0)
+  isFlag = dataProcessing.isBetweenTwoMV(dfCode, dfLongMA, dfShortMA, 0)
 
   if isFlag :
     lstResult.append(row['code'])
