@@ -1428,7 +1428,8 @@ def isBetweenTwoMV(df, dfLongMA, dfShortMA, day) :
     :param day : df idx 0일자, 현재일 기준 + day 전일에 대해 조건을 구함
     :return 두 이평선 사이에 주가가 있으면 True, 그렇지 않으면 False
     '''
-
+    print(dfLongMA)
+    
     currentPrice = df.loc[0+day]['종가']
     longPrice = dfLongMA.loc[0+day]['종가']
     shortPrice = dfShortMA.loc[0+day]['종가']
