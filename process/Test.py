@@ -22,5 +22,5 @@ masterFilePath = os.path.join(inputFolderPath, 'Master.xlsx')
 sheetName = 'KOSPI'
 df = excel_collection.readExcelToDataFrame(masterFilePath, sheetName)
 
-for idx, row in df.itertools() :
+for idx, row in df.iterrows() :
   print(row)
