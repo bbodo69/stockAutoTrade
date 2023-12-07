@@ -22,5 +22,16 @@ masterFilePath = os.path.join(inputFolderPath, 'Master.xlsx')
 sheetName = 'KOSPI'
 df = excel_collection.readExcelToDataFrame(masterFilePath, sheetName)
 
+# 결과 lst 생성
+lstResult = []
+
 for idx, row in df.iterrows() :
-  print(row)
+  # 종목 시세 데이터 가져오기
+  dfCode = dataProcessing.GetStockPrice(row['code'], 30)
+  
+  isFlag = dataProcessing.isBetweenTwoMV(dfCode, 100, 10, 0)
+
+  if isFlag :
+    lstResult.append(row['code'])
+
+print("전체 : {0}, 대상 : {1}".format(len(df), len(lstResult))
