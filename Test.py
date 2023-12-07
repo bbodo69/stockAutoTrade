@@ -34,10 +34,10 @@ class MyWindow(QMainWindow):
         self.setMinimumSize(QSize(500, 100))
         self.setWindowTitle("Alert Message")
 
-        pybutton = QPushButton('버튼 눌러야 컴퓨터 계속 사용 가능', self)
-        pybutton.clicked.connect(self.clickMethod)
-        pybutton.resize(400, 30)
-        pybutton.move(50, 35)
+        # pybutton = QPushButton('버튼 눌러야 컴퓨터 계속 사용 가능', self)
+        # pybutton.clicked.connect(self.clickMethod)
+        # pybutton.resize(400, 30)
+        # pybutton.move(50, 35)
 
         self.kiwoom = QAxWidget("KHOPENAPI.KHOpenAPICtrl.1")
         ### event ###
@@ -240,25 +240,49 @@ class MyWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    # read Config data
+    config_filePath = "config.json"
+    dailyConfirmCode_filePath = "dailyConfirmCode.json"
+    isConfigFile = os.path.isfile(config_filePath)
+
+    if isConfigFile:
+        with open(config_filePath, 'rt', encoding='UTF8') as json_file:
+            config = json.load(json_file)
+    else:
+        print("config 파일 미존재")
+
+    # read confirmCodeFile
+    with open(dailyConfirmCode_filePath, 'rt', encoding='UTF8') as json_file:
+        codes = json.load(json_file)
+
+    print(codes)
+    for i in codes :
+        print(i['code'])
+
+    # save basic values
+    amount = config["order_price"]  # 주문 총 금액
+    account_num = config["account_num"]  # 계좌번호
+    buyFlag = config["buy_flag"]
+    buyRate = config["buy_rate"]
+    sellRate = config["sell_rate"]
+    stopLoss = config["stop_loss"]
+
+    print("{0}, {1}, {2}, {3}, {4}, {5}".format(amount, account_num, buyFlag, buyRate, sellRate, stopLoss))
+
+    # start kiwoom API
     app = QApplication(sys.argv)
     myWindow = MyWindow()
-
     myWindow.show()
+
     # 키움 로그인
     myWindow.kiwoom_login()
-    print('계좌정보 : {0}'.format(myWindow.get_account_info()))
-    myWindow.get_deposit("8065202611")
-    print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
+    # print('계좌정보 : {0}'.format(myWindow.get_account_info())) # 보유 계좌 정보 불러오기
+    myWindow.get_deposit(account_num) # 예수금, 출금가능금액 가져오기
+    # print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
+    myWindow.detail_account_mystock(account_num, 0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
 
-    # myWindow.buy_Stock("005930", 1, 72000, "8065202611")
-
-    myWindow.detail_account_mystock(8065202611,
-                                             0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
-    time.sleep(20000)
-
-    for i in account_stock_dict :
-        print(account_stock_dict[i])
-
+    while True :
+        time.sleep(100)
 
     # try:
     #     app = QApplication(sys.argv)
