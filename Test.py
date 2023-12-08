@@ -343,6 +343,7 @@ if __name__ == "__main__":
                     # dfMinute = dataProcessing.GetStockPriceMinute(code)
                     dfStock = dataProcessing.GetStockPrice(code, 5)
                     print('code : {0}'.format(code))
+                    print(dfStock)
                     print(int(int(dfStock.loc[0]['시가'])))
                     print(buyRate)
                     print(dfStock.loc[0]['종가'])
