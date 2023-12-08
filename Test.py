@@ -341,7 +341,7 @@ if __name__ == "__main__":
                         break
                     code = row['code']
                     # dfMinute = dataProcessing.GetStockPriceMinute(code)
-                    dfStock = dataProcessing.GetStockPrice(code, 5)
+                    dfStock = dataProcessing.GetStockPrice(code, 20)
                     print('code : {0}'.format(code))
                     print(dfStock)
                     print(int(int(dfStock.loc[0]['시가'])))
