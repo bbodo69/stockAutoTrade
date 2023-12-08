@@ -338,7 +338,7 @@ if __name__ == "__main__":
         if buyFlag:
             for row in codes:
                 try:
-                    if deposit < amount:
+                    if out_deposit < amount:
                         break
                     code = row['code']
                     # dfMinute = dataProcessing.GetStockPriceMinute(code)
@@ -362,17 +362,17 @@ if __name__ == "__main__":
                     if code in account_stock_dict:  # 보유 종목에 대해서 매수 진행 X
                         continue
 
-                    tmpDeposit = deposit
+                    tmpOut_deposit = out_deposit
                     myWindow.buy_Stock(code, quantity, buyPrice, account_num)
                     # 예수금 존재할 때만, 매수 시도
                     myWindow.get_deposit(account_num)
-                    if tmpDeposit == deposit:
+                    if tmpOut_deposit == out_deposit:
                         # 라인 보내기
-                        messageInfo = '\n실패\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, deposit)
+                        messageInfo = '\n실패\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, out_deposit)
                         Common.SendLine(messageInfo)
                         continue
                     # 라인 보내기
-                    messageInfo = '\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, deposit)
+                    messageInfo = '\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, out_deposit)
                     
                     Common.SendLine(messageInfo)
                     
