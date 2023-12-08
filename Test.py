@@ -263,9 +263,9 @@ if __name__ == "__main__":
     amount = config["order_price"]  # 주문 총 금액
     account_num = config["account_num"]  # 계좌번호
     buyFlag = config["buy_flag"]
-    buyRate = config["buy_rate"]
-    sellRate = config["sell_rate"]
-    stopLoss = config["stop_loss"]
+    buyRate = float(config["buy_rate"])
+    sellRate = float(config["sell_rate"])
+    stopLoss = float(config["stop_loss"])
 
     # start kiwoom API
     app = QApplication(sys.argv)
