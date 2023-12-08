@@ -255,8 +255,8 @@ if __name__ == "__main__":
     with open(dailyConfirmCode_filePath, 'rt', encoding='UTF8') as json_file:
         codes = json.load(json_file)
 
-    # for i in codes :
-    #     print(i['code'])
+    for idx, row in codes.iterrows() :
+        print(row['code'])
 
     # save basic values
     amount = config["order_price"]  # 주문 총 금액
@@ -328,6 +328,8 @@ if __name__ == "__main__":
     #     # "code" 열에 종목 코드 존재
     #     dfBuyList = pd.read_json(masterFilePath)
     #
+
+
     #     while (True):
     #         if datetime.datetime.now().hour >= 16:
     #             print(datetime.datetime.now().hour)
@@ -375,7 +377,7 @@ if __name__ == "__main__":
     #
     #         # 매수
     #         if buyFlag:
-    #             for idx, row in dfBuyList.iterrows():
+    #             for idx, row in codes.iterrows():
     #                 try:
     #                     if deposit < amount:
     #                         break
