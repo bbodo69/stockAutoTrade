@@ -368,7 +368,7 @@ if __name__ == "__main__":
                     
                 except Exception as e:
                     print('Err : {0}'.format(e))
-                    BizError += "\n매수 : " + str(e)
+                    # BizError += "\n매수 : " + str(e)
 
                     # 라인 보내기
                     messageInfo = '매수 Err : {0}'.format(e)
