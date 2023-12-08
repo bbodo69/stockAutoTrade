@@ -239,6 +239,19 @@ class MyWindow(QMainWindow):
 
         self.opw00001_req_loop.exec_()
 
+    # 미체결 확인 함수
+    # def not_signed_account(self, nPrevNext="0"):
+    # self.dynamicCall("SetInputValue(QString, QString)",
+    #                  "계좌번호", self.account_number)
+    # self.dynamicCall("SetInputValue(QString, QString)", "전체종목구분", "0")
+    # self.dynamicCall("SetInputValue(QString, QString)", "매매구분", "0")
+    # self.dynamicCall("SetInputValue(QString, QString)", "체결구분", "1")
+    # self.dynamicCall("CommRqData(QString, QString, int, QString)",
+    #                  "실시간미체결요청", "opt10075", nPrevNext, self.screen_my_account)
+
+    # if not self.account_loop.isRunning():
+    #     self.account_loop.exec_()
+
 
 if __name__ == "__main__":
     # read Config data
