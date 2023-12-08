@@ -343,7 +343,8 @@ if __name__ == "__main__":
                     # dfMinute = dataProcessing.GetStockPriceMinute(code)
                     dfStock = dataProcessing.GetStockPrice(code, 5)
                     print('code : {0}'.format(code))
-                    print(int(int(dfStock.loc[0]['시가']) * buyRate))
+                    print(int(int(dfStock.loc[0]['시가'])))
+                    print(buyRate)
                     print(dfStock.loc[0]['종가'])
                     print('매수가격 : {0}, 현재가격 : {1}'.format(int(int(dfStock.loc[0]['시가']) * buyRate),
                                                           dfStock.loc[0]['종가']))
