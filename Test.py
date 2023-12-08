@@ -255,9 +255,8 @@ if __name__ == "__main__":
     with open(dailyConfirmCode_filePath, 'rt', encoding='UTF8') as json_file:
         codes = json.load(json_file)
 
-    print(codes)
-    for i in codes :
-        print(i['code'])
+    # for i in codes :
+    #     print(i['code'])
 
     # save basic values
     amount = config["order_price"]  # 주문 총 금액
@@ -267,8 +266,6 @@ if __name__ == "__main__":
     sellRate = config["sell_rate"]
     stopLoss = config["stop_loss"]
 
-    print("{0}, {1}, {2}, {3}, {4}, {5}".format(amount, account_num, buyFlag, buyRate, sellRate, stopLoss))
-
     # start kiwoom API
     app = QApplication(sys.argv)
     myWindow = MyWindow()
@@ -277,7 +274,7 @@ if __name__ == "__main__":
     # 키움 로그인
     myWindow.kiwoom_login()
     # print('계좌정보 : {0}'.format(myWindow.get_account_info())) # 보유 계좌 정보 불러오기
-    myWindow.get_deposit(account_num) # 예수금, 출금가능금액 가져오기
+    myWindow.get_deposit(account_num) # 예수금, 출금가능금액 가져오기, ret = deposit(예수금), out_deposit(출금가능금액)
     # print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
     myWindow.detail_account_mystock(account_num, 0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
 
