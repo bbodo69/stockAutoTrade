@@ -332,6 +332,7 @@ if __name__ == "__main__":
     
         # 예수금 존재할 때만, 매수 시도
         myWindow.get_deposit(account_num)
+        
     
         # 매수
         if buyFlag:
@@ -360,14 +361,23 @@ if __name__ == "__main__":
                         continue
                     if code in account_stock_dict:  # 보유 종목에 대해서 매수 진행 X
                         continue
-                    myWindow.buy_Stock(code, quantity, buyPrice, account_num)
 
+                    tmpDeposit = deposit
+                    myWindow.buy_Stock(code, quantity, buyPrice, account_num)
+                    # 예수금 존재할 때만, 매수 시도
+                    myWindow.get_deposit(account_num)
+                    if tmpDeposit == deposit:
+                        # 라인 보내기
+                        messageInfo = '\n실패\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, deposit)
+                        Common.SendLine(messageInfo)
+                        continue
                     # 라인 보내기
-                    messageInfo = '\n총 종목코드 : {0}\n총 수량 : {1}\n총 매수가 : {2}\n총 예수금 : {3}'.format(code, quantity, buyPrice, deposit)
+                    messageInfo = '\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, deposit)
+                    
                     Common.SendLine(messageInfo)
                     
                 except Exception as e:
-                    print('Err : {0}'.format(e))
+                    print('매수 Err : {0}'.format(e))
                     # BizError += "\n매수 : " + str(e)
 
                     # 라인 보내기
