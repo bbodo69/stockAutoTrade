@@ -239,7 +239,7 @@ class MyWindow(QMainWindow):
 
         self.opw00001_req_loop.exec_()
 
-    # 미체결 확인 함수
+    # 미체결 확인 함수, https://steady-coding.tistory.com/335 참고
     # def not_signed_account(self, nPrevNext="0"):
     # self.dynamicCall("SetInputValue(QString, QString)",
     #                  "계좌번호", self.account_number)
