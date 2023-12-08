@@ -255,7 +255,7 @@ if __name__ == "__main__":
     with open(dailyConfirmCode_filePath, 'rt', encoding='UTF8') as json_file:
         codes = json.load(json_file)
 
-    for idx, row in codes.iterrows() :
+    for row in codes :
         print(row['code'])
 
     # save basic values
