@@ -440,9 +440,6 @@ if __name__ == "__main__":
                     print('매수가격 : {0}, 현재가격 : {1}'.format(int(int(dfStock.loc[0]['시가']) * buyRate),
                                                           dfStock.loc[0]['종가']))
                     
-                    if row['code'] in not_signed_account_dict : # 미체결에 있으면 넘어가기
-                        continue
-    
                     if int(dfStock.loc[0]['종가']) > int(int(dfStock.loc[0]['시가']) * buyRate):
                         continue
     
@@ -456,7 +453,8 @@ if __name__ == "__main__":
     
                     if buyPrice is None:
                         continue
-                    if code in account_stock_dict:  # 보유 종목에 대해서 매수 진행 X
+
+                    if code in account_stock_dict or code in not_signed_account_dict:  # 보유 종목, 미체결 종목에 대해서 매수 진행 X
                         continue
 
                     tmpOut_deposit = out_deposit
@@ -481,11 +479,10 @@ if __name__ == "__main__":
                     # 라인 보내기
                     messageInfo = '매수 Err : {0}'.format(e)
                     Common.SendLine(messageInfo)
-    
+
+        time.sleep(20)
         if datetime.datetime.now().hour > 16:
             break
-    
-        time.sleep(20)
 
     # try:
     #     app = QApplication(sys.argv)
