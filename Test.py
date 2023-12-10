@@ -13,6 +13,7 @@ import module.LoadConfig as LoadConfig
 # import module.sender_collection as sender_collection
 import json
 import os
+import random
 
 class MyWindow(QMainWindow):
     # QMainWindow 를 상속
@@ -97,8 +98,82 @@ class MyWindow(QMainWindow):
         global deposit
         global out_deposit
         global stocksCnt
+        global not_signed_account_dict
 
         print("요청이름 : " + rqname)
+
+        # 미체결
+        if rqname == "opt10075_req" :
+            print("rqName = opt10075_req")
+            cnt = self.dynamicCall(
+                "GetRepeatCnt(QString, QString)", sTrCode, sRQName)
+
+            for i in range(cnt):
+                stock_code = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목코드")
+                stock_code = stock_code.strip()
+
+                stock_order_number = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문번호")
+                stock_order_number = int(stock_order_number)
+
+                stock_name = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목명")
+                stock_name = stock_name.strip()
+
+                stock_order_type = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문구분")
+                stock_order_type = stock_order_type.strip().lstrip('+').lstrip('-')
+
+                stock_order_price = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문가격")
+                stock_order_price = int(stock_order_price)
+
+                stock_order_quantity = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문수량")
+                stock_order_quantity = int(stock_order_quantity)
+
+                stock_not_signed_quantity = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "미체결수량")
+                stock_not_signed_quantity = int(stock_not_signed_quantity)
+
+                stock_signed_quantity = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "체결량")
+                stock_signed_quantity = int(stock_signed_quantity)
+
+                stock_present_price = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "현재가")
+                stock_present_price = int(
+                    stock_present_price.strip().lstrip('+').lstrip('-'))
+
+                stock_order_status = self.dynamicCall(
+                    "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문상태")
+                stock_order_status = stock_order_status.strip()
+
+                if not stock_code in self.not_signed_account_dict:
+                    self.not_signed_account_dict[stock_code] = {}
+
+                self.not_signed_account_dict[stock_code].update(
+                    {'종목명': stock_name})
+                self.not_signed_account_dict[stock_code].update(
+                    {'주문구분': stock_order_type})
+                self.not_signed_account_dict[stock_code].update(
+                    {'주문가격': stock_order_price})
+                self.not_signed_account_dict[stock_code].update(
+                    {'주문수량': stock_order_quantity})
+                self.not_signed_account_dict[stock_code].update(
+                    {'미체결수량': stock_not_signed_quantity})
+                self.not_signed_account_dict[stock_code].update(
+                    {'체결량': stock_signed_quantity})
+                self.not_signed_account_dict[stock_code].update(
+                    {'현재가': stock_present_price})
+                self.not_signed_account_dict[stock_code].update(
+                    {'주문상태': stock_order_status})
+
+            if sPrevNext == "2":
+                self.not_signed_account(2)
+            else:
+                self.opt10075_req_loop.exit()
 
         # 예수금
         if rqname == "opw00001_req":
@@ -223,14 +298,14 @@ class MyWindow(QMainWindow):
         self.detail_account_mystock_loop.exec()
         print("detail_account_mystock 종료")
 
-    def get_deposit(self, account, sPrevNext="0"):
+    def get_deposit(self, account, pw, sPrevNext="0"):
 
         self.opw00001_req_loop = QEventLoop()
 
         print("get_deposit 시작")
 
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "계좌번호", account)
-        self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호", "0000")
+        self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호", pw)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "구분")
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "조회구분", "1")
         # self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001_req", "opw00001", sPrevNext, "0112")
@@ -240,17 +315,21 @@ class MyWindow(QMainWindow):
         self.opw00001_req_loop.exec_()
 
     # 미체결 확인 함수, https://steady-coding.tistory.com/335 참고
-    # def not_signed_account(self, nPrevNext="0"):
-    # self.dynamicCall("SetInputValue(QString, QString)",
-    #                  "계좌번호", self.account_number)
-    # self.dynamicCall("SetInputValue(QString, QString)", "전체종목구분", "0")
-    # self.dynamicCall("SetInputValue(QString, QString)", "매매구분", "0")
-    # self.dynamicCall("SetInputValue(QString, QString)", "체결구분", "1")
-    # self.dynamicCall("CommRqData(QString, QString, int, QString)",
-    #                  "실시간미체결요청", "opt10075", nPrevNext, self.screen_my_account)
+    def not_signed_account(self, account, nPrevNext="0"):
 
-    # if not self.account_loop.isRunning():
-    #     self.account_loop.exec_()
+        self.opt10075_req_loop = QEventLoop()
+        print("not_signed_account 시작")
+
+        self.dynamicCall("SetInputValue(QString, QString)",
+                         "계좌번호", account)
+        self.dynamicCall("SetInputValue(QString, QString)", "전체종목구분", "0")
+        self.dynamicCall("SetInputValue(QString, QString)", "매매구분", "0")
+        self.dynamicCall("SetInputValue(QString, QString)", "체결구분", "1")
+        self.dynamicCall("CommRqData(QString, QString, int, QString)",
+                         "opt10075_req", "opt10075", nPrevNext, "0113")
+
+        if not self.opt10075_req_loop.isRunning():
+            self.opt10075_req_loop.exec_()
 
 
 if __name__ == "__main__":
@@ -288,7 +367,7 @@ if __name__ == "__main__":
     # 키움 로그인
     myWindow.kiwoom_login()
     # print('계좌정보 : {0}'.format(myWindow.get_account_info())) # 보유 계좌 정보 불러오기
-    myWindow.get_deposit(account_num) # 예수금, 출금가능금액 가져오기, ret = deposit(예수금), out_deposit(출금가능금액)
+    myWindow.get_deposit(account_num, pw) # 예수금, 출금가능금액 가져오기, ret = deposit(예수금), out_deposit(출금가능금액)
     # print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
     # myWindow.detail_account_mystock(account_num, 0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
 
@@ -332,6 +411,7 @@ if __name__ == "__main__":
                         continue
     
                     myWindow.sell_Stock(code, possibleQuantity, sellPrice, account_num)
+                    time.sleep(0.3)
 
                     # 라인 보내기
                     messageInfo = '\n총 종목코드 : {0}\n총 수량 : {1}\n총 매도가 : {2}'.format(code, possibleQuantity, sellPrice)
@@ -344,13 +424,14 @@ if __name__ == "__main__":
                     Common.SendLine(messageInfo)
     
         # 예수금 존재할 때만, 매수 시도
-        myWindow.get_deposit(account_num)
-        
-    
+        myWindow.get_deposit(account_num, pw)
+
         # 매수
+
         if buyFlag:
             for row in codes:
                 try:
+                    codes = random.sample(codes, 50) # 코스피 중 n개 샘플 먼저 진행
                     if out_deposit < amount:
                         break
                     code = row['code']
@@ -358,6 +439,9 @@ if __name__ == "__main__":
                     dfStock = dataProcessing.GetStockPrice(code, 20)
                     print('매수가격 : {0}, 현재가격 : {1}'.format(int(int(dfStock.loc[0]['시가']) * buyRate),
                                                           dfStock.loc[0]['종가']))
+                    
+                    if row['code'] in not_signed_account_dict : # 미체결에 있으면 넘어가기
+                        continue
     
                     if int(dfStock.loc[0]['종가']) > int(int(dfStock.loc[0]['시가']) * buyRate):
                         continue
@@ -377,8 +461,9 @@ if __name__ == "__main__":
 
                     tmpOut_deposit = out_deposit
                     myWindow.buy_Stock(code, quantity, buyPrice, account_num)
+                    time.sleep(0.3)
                     # 예수금 존재할 때만, 매수 시도
-                    myWindow.get_deposit(account_num)
+                    myWindow.get_deposit(account_num, pw)
                     if tmpOut_deposit == out_deposit:
                         # 라인 보내기
                         messageInfo = '\n실패\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, out_deposit)

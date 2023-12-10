@@ -110,7 +110,6 @@ def createGraphLineAndScatter(MA):
             dfCode = dataProcessing.standardizationStockSplit(dfCode)
             targetDate = datetime.datetime.now().strftime('%Y.%m.%d')
             dfMA = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
-            
 
             startTime = time.time()
 
