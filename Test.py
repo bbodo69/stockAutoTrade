@@ -397,7 +397,7 @@ if __name__ == "__main__":
             for i in account_stock_dict:
                 try:
                     code = i
-                    print("code = {0}".format(code)
+                    print("code = {0}".format(code))
                     buy_price = int(account_stock_dict[i]['매입가'])
                     print("buy_price = {0}".format(buy_price))
                     stockAmount = int(account_stock_dict[i]['보유수량'])
