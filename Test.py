@@ -172,7 +172,7 @@ class MyWindow(QMainWindow):
                 self.not_signed_account_dict[stock_code].update(
                     {'주문상태': stock_order_status})
 
-            not_signed_account_dict.update(self.not_signed_account_dict)
+            not_signed_account_dict = self.not_signed_account_dict
             
             if sPrevNext == "2":
                 self.not_signed_account(2)
@@ -256,7 +256,7 @@ class MyWindow(QMainWindow):
                 #                print("sPrevNext : %s" % sPrevNext)
                 #                print("계좌에 가지고 있는 종목은 %s " % rows)
 
-                account_stock_dict.update(self.account_stock_dict) 
+                account_stock_dict = self.account_stock_dict
                 
                 if sPrevNext == "2":
                     self.detail_account_mystock(sPrevNext="2")
