@@ -359,7 +359,7 @@ def GetStockPriceMinute(code):
             df = pd.concat([df, pd.read_html(res.text, header=0)[0]], axis=0)
     except Exception as e :
         df = GetStockPrice(code, 20)
-        df.rename(columns={"체결가": "종가"})
+        df.rename(columns={"종가": "체결가"}, inplace = True)
         print(df)
         time.time.sleep(30)
 
