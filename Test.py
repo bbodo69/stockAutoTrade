@@ -273,8 +273,8 @@ class MyWindow(QMainWindow):
                     # self.cancel_screen_number("0111")
                     # self.detail_account_mystock_loop.exit()
                     self.tr_event_loop.exit()
-            except Exception as e :
-                print("{0} Err _ {1}".format(rqname, e))
+        except Exception as e :
+            print("{0} Err _ {1}".format(rqname, e))
             
 
 
