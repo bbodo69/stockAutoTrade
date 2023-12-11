@@ -495,7 +495,7 @@ if __name__ == "__main__":
                     Common.SendLine(messageInfo)
 
         time.sleep(20)
-        if datetime.datetime.now().hour > 16:
+        if datetime.datetime.now().hour > 20:
             break
 
     # try:
