@@ -358,7 +358,7 @@ def GetStockPriceMinute(code):
             res = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
             df = pd.concat([df, pd.read_html(res.text, header=0)[0]], axis=0)
     except Exception as e :
-        df = dataProcessing.GetStockPrice(code, 20)
+        df = GetStockPrice(code, 20)
         df.rename(columns={"체결가": "종가"})
         print(df)
         time.sleep(30)
