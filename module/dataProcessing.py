@@ -361,6 +361,7 @@ def GetStockPriceMinute(code):
         df = dataProcessing.GetStockPrice(code, 20)
         df.rename(columns={"체결가": "종가"})
         print(df)
+        time.sleep(30)
 
     # df.dropna()를 이용해 결측값 있는 행 제거
     df = df.dropna()
