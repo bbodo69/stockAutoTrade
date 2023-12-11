@@ -289,8 +289,8 @@ class MyWindow(QMainWindow):
         return account_list
 
     def detail_account_mystock(self, account, sPrevNext="0"):
-        print("sPrevNest = {0}, isRunningLoop = {1}".format(sPrevNext, self.detail_account_mystock_loop.isRunning()))
         self.detail_account_mystock_loop = QEventLoop()
+        print("sPrevNest = {0}, isRunningLoop = {1}".format(sPrevNext, self.detail_account_mystock_loop.isRunning()))
         print("detail_account_mystock 시작")
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "계좌번호", account)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호", "0000")
