@@ -50,6 +50,9 @@ class MyWindow(QMainWindow):
         self.kiwoom.OnReceiveChejanData.connect(self.receive_Chejan)
         self.kiwoom.OnReceiveTrData.connect(self.receive_trdata)
 
+        # loop 생성
+        self.tr_event_loop = QEventLoop()
+
     def receive_Chejan(self, sGubun, nItemCnt, sFidlist):
         print(sGubun, nItemCnt, sFidlist)
 
@@ -176,7 +179,8 @@ class MyWindow(QMainWindow):
             if sPrevNext == "2":
                 self.not_signed_account(2)
             else:
-                self.opt10075_req_loop.exit()
+                # self.opt10075_req_loop.exit()
+                self.tr_event_loop.exit()
             
 
         # 예수금
@@ -191,7 +195,8 @@ class MyWindow(QMainWindow):
             self.out_deposit = int(self.out_deposit)
             out_deposit = self.out_deposit
 
-            self.opw00001_req_loop.exit()
+            # self.opw00001_req_loop.exit()
+            self.tr_event_loop.exit()
 
             print('deposit : {0}, out_deposit : {1}'.format(deposit, out_deposit))
 
@@ -209,7 +214,8 @@ class MyWindow(QMainWindow):
 
             if rows == 0:
                 account_stock_dict = {}
-                self.detail_account_mystock_loop.exit()
+                # self.detail_account_mystock_loop.exit()
+                self.tr_event_loop.exit()
 
             for i in range(rows):
                 code = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
@@ -264,7 +270,8 @@ class MyWindow(QMainWindow):
                     self.detail_account_mystock_loop.exit()
                 '''
                 # self.cancel_screen_number("0111")
-                self.detail_account_mystock_loop.exit()
+                # self.detail_account_mystock_loop.exit()
+                self.tr_event_loop.exit()
                     
         if rqname == "opt10086_pre_req":
             self.preStart = self.kiwoom.dynamicCAll("CommGetData(QString, QString, QString, int, QString)",
@@ -285,6 +292,7 @@ class MyWindow(QMainWindow):
             self.preUpDown = self.kiwoom.dynamicCall("CommGetData(QString, QString, QString, int, QString)",
                                                      trcode, "",
                                                      rqname, 0, "등락률")
+            self.tr_event_loop.exit()
             # self.opt10086_pre_req_loop.exit()
             print("opt10086_pre_req 끝")
 
@@ -304,9 +312,11 @@ class MyWindow(QMainWindow):
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "조회구분", "1")
         self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", sPrevNext,
                                 "0111")
-        # CommRqData
-        if not self.detail_account_mystock_loop.isRunning():
-            self.detail_account_mystock_loop.exec_()
+
+        # if not self.detail_account_mystock_loop.isRunning():
+        #     self.detail_account_mystock_loop.exec_()
+        if not self.tr_event_loop.isRunning():
+            self.tr_event_loop.exec_()
         print("detail_account_mystock 종료")
 
     def get_deposit(self, account, pw, sPrevNext="0"):
@@ -323,12 +333,14 @@ class MyWindow(QMainWindow):
         self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00001_req", "opw00001", sPrevNext,
                                 "0112")
 
-        self.opw00001_req_loop.exec_()
+        # self.opw00001_req_loop.exec_()
+        if not self.tr_event_loop.isRunning():
+            self.tr_event_loop.exec_()
 
     # 미체결 확인 함수, https://steady-coding.tistory.com/335 참고
     def not_signed_account(self, account, nPrevNext="0"):
 
-        self.opt10075_req_loop = QEventLoop()
+        # self.opt10075_req_loop = QEventLoop()
         print("not_signed_account 시작")
 
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)",
@@ -339,8 +351,10 @@ class MyWindow(QMainWindow):
         self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)",
                          "opt10075_req", "opt10075", nPrevNext, "0113")
 
-        if not self.opt10075_req_loop.isRunning():
-            self.opt10075_req_loop.exec_()
+        # if not self.opt10075_req_loop.isRunning():
+        #     self.opt10075_req_loop.exec_()
+        if not self.tr_event_loop.isRunning():
+            self.tr_event_loop.exec_()
 
     def cancel_screen_number(self, screen_no):
         self.dynamicCall("DisconnectRealData(QString)", screen_no)
