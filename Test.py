@@ -15,7 +15,7 @@ import json
 import os
 import random
 
-class MyWindow(QMainWindow):
+class MyWindow(QMainWindow, acc):
     # QMainWindow 를 상속
     delay = 3.6
 
@@ -24,7 +24,7 @@ class MyWindow(QMainWindow):
         ####### 계좌 관련 변수
         self.deposit = 0
         self.out_deposit = 0
-        self.account_num = None
+        self.account_num = "8065202611"
         self.use_money = 0
         self.use_money_percent = 0
         self.account_list = []
@@ -260,7 +260,7 @@ class MyWindow(QMainWindow):
                 print(2)
                 if sPrevNext == "2":
                     print(21)
-                    self.detail_account_mystock(sPrevNext="2")
+                    self.detail_account_mystock(self.account_num, sPrevNext="2")
                 else:
                     print(22)
                     self.detail_account_mystock_loop.exit()
