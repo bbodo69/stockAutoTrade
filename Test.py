@@ -326,12 +326,12 @@ class MyWindow(QMainWindow):
         self.opt10075_req_loop = QEventLoop()
         print("not_signed_account 시작")
 
-        self.dynamicCall("SetInputValue(QString, QString)",
+        self.kiwoom.dynamicCall("SetInputValue(QString, QString)",
                          "계좌번호", account)
-        self.dynamicCall("SetInputValue(QString, QString)", "전체종목구분", "0")
-        self.dynamicCall("SetInputValue(QString, QString)", "매매구분", "0")
-        self.dynamicCall("SetInputValue(QString, QString)", "체결구분", "1")
-        self.dynamicCall("CommRqData(QString, QString, int, QString)",
+        self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "전체종목구분", "0")
+        self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "매매구분", "0")
+        self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "체결구분", "1")
+        self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)",
                          "opt10075_req", "opt10075", nPrevNext, "0113")
 
         if not self.opt10075_req_loop.isRunning():
