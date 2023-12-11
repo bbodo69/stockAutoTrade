@@ -107,48 +107,48 @@ class MyWindow(QMainWindow):
         if rqname == "opt10075_req" :
             print("rqName = opt10075_req")
             stock_code = {}
-            cnt = self.dynamicCall(
+            cnt = self.kiwoom.dynamicCall(
                 "GetRepeatCnt(QString, QString)", sTrCode, sRQName)
 
             for i in range(cnt):
-                stock_code = self.dynamicCall(
+                stock_code = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목코드")
                 stock_code = stock_code.strip()
 
-                stock_order_number = self.dynamicCall(
+                stock_order_number = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문번호")
                 stock_order_number = int(stock_order_number)
 
-                stock_name = self.dynamicCall(
+                stock_name = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목명")
                 stock_name = stock_name.strip()
 
-                stock_order_type = self.dynamicCall(
+                stock_order_type = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문구분")
                 stock_order_type = stock_order_type.strip().lstrip('+').lstrip('-')
 
-                stock_order_price = self.dynamicCall(
+                stock_order_price = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문가격")
                 stock_order_price = int(stock_order_price)
 
-                stock_order_quantity = self.dynamicCall(
+                stock_order_quantity = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문수량")
                 stock_order_quantity = int(stock_order_quantity)
 
-                stock_not_signed_quantity = self.dynamicCall(
+                stock_not_signed_quantity = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "미체결수량")
                 stock_not_signed_quantity = int(stock_not_signed_quantity)
 
-                stock_signed_quantity = self.dynamicCall(
+                stock_signed_quantity = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "체결량")
                 stock_signed_quantity = int(stock_signed_quantity)
 
-                stock_present_price = self.dynamicCall(
+                stock_present_price = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "현재가")
                 stock_present_price = int(
                     stock_present_price.strip().lstrip('+').lstrip('-'))
 
-                stock_order_status = self.dynamicCall(
+                stock_order_status = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "주문상태")
                 stock_order_status = stock_order_status.strip()
 
