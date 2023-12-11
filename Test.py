@@ -358,6 +358,7 @@ if __name__ == "__main__":
     buyRate = float(config["buy_rate"])
     sellRate = float(config["sell_rate"])
     stopLoss = float(config["stop_loss"])
+    pw = "0000"
 
     # start kiwoom API
     app = QApplication(sys.argv)
