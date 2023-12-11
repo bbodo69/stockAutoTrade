@@ -97,181 +97,187 @@ class MyWindow(QMainWindow):
 
     def receive_trdata(self, screen_no, rqname, trcode, recordname, sPrevNext, data_len, err_code, msg1, msg2):
 
-        # 키움 API 는 요청, 수신으로 진행되기 때문에, 각 함수에 ret 값을 넣기가 어려움. 그래서 각 요청에 대한 수신값을 global 변수에 넣어서 저장해주고, 이것을 main 에서 사용
-        global account_stock_dict
-        global deposit
-        global out_deposit
-        global stocksCnt
-        global not_signed_account_dict
-
-        print("요청이름 : " + rqname)
-
-        # 미체결
-        if rqname == "opt10075_req" :
-            print("rqName = opt10075_req")
-            stock_code = {}
-            cnt = self.kiwoom.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
-
-            for i in range(cnt):
-                stock_code = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "종목코드")
-                stock_code = stock_code.strip()
-
-                stock_order_number = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문번호")
-                stock_order_number = int(stock_order_number)
-
-                stock_name = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "종목명")
-                stock_name = stock_name.strip()
-
-                stock_order_type = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문구분")
-                stock_order_type = stock_order_type.strip().lstrip('+').lstrip('-')
-
-                stock_order_price = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문가격")
-                stock_order_price = int(stock_order_price)
-
-                stock_order_quantity = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문수량")
-                stock_order_quantity = int(stock_order_quantity)
-
-                stock_not_signed_quantity = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "미체결수량")
-                stock_not_signed_quantity = int(stock_not_signed_quantity)
-
-                stock_signed_quantity = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "체결량")
-                stock_signed_quantity = int(stock_signed_quantity)
-
-                stock_present_price = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "현재가")
-                stock_present_price = int(
-                    stock_present_price.strip().lstrip('+').lstrip('-'))
-
-                stock_order_status = self.kiwoom.dynamicCall(
-                    "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문상태")
-                stock_order_status = stock_order_status.strip()
-
-                if not stock_code in self.not_signed_account_dict:
-                    self.not_signed_account_dict[stock_code] = {}
-
-                self.not_signed_account_dict[stock_code].update(
-                    {'종목명': stock_name})
-                self.not_signed_account_dict[stock_code].update(
-                    {'주문구분': stock_order_type})
-                self.not_signed_account_dict[stock_code].update(
-                    {'주문가격': stock_order_price})
-                self.not_signed_account_dict[stock_code].update(
-                    {'주문수량': stock_order_quantity})
-                self.not_signed_account_dict[stock_code].update(
-                    {'미체결수량': stock_not_signed_quantity})
-                self.not_signed_account_dict[stock_code].update(
-                    {'체결량': stock_signed_quantity})
-                self.not_signed_account_dict[stock_code].update(
-                    {'현재가': stock_present_price})
-                self.not_signed_account_dict[stock_code].update(
-                    {'주문상태': stock_order_status})
-
-            not_signed_account_dict = self.not_signed_account_dict
-            
-            if sPrevNext == "2":
-                self.not_signed_account(2)
-            else:
-                # self.opt10075_req_loop.exit()
-                self.tr_event_loop.exit()
-            
-
-        # 예수금
-        if rqname == "opw00001_req":
-            print("rqName = opw00001_req")
-            self.deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
-                                                   "예수금")
-            self.deposit = int(self.deposit)
-            deposit = self.deposit
-            self.out_deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
-                                                       "출금가능금액")
-            self.out_deposit = int(self.out_deposit)
-            out_deposit = self.out_deposit
-
-            # self.opw00001_req_loop.exit()
-            self.tr_event_loop.exit()
-
-            print('deposit : {0}, out_deposit : {1}'.format(deposit, out_deposit))
-
-        # 총매입금액
-        if rqname == "opw00018_req":
-            # print("rqName = opw00018_req")
-            total_buy_money = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString", trcode, rqname, 0,
-                                                      "총매입금액")
-            self.total_buy_money = int(total_buy_money)
-            # 보유 종목 가져오기
-            rows = self.kiwoom.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
-            stocksCnt = rows
-            # 계좌가 보유중인 종목의 갯수를 카운트해준다.
-            print("보유종목수 : {0}".format(rows))
-
-            if rows == 0:
-                account_stock_dict = {}
-                # self.detail_account_mystock_loop.exit()
-                self.tr_event_loop.exit()
-
-            for i in range(rows):
-                code = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
-                                               trcode, rqname, i, "종목번호")
-                code = code.strip()[1:]
-                code_nm = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
-                                                  trcode, rqname, i, "종목명")
-                stock_quantity = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
-                                                         trcode, rqname, i, "보유수량")
-                buy_price = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
-                                                    trcode, rqname, i, "매입가")  # 매입가 평균
-                learn_rate = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
-                                                     trcode, rqname, i, "수익률(%)")
-                current_price = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
-                                                        trcode, rqname, i, "현재가")
-                total_chegual_price = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
-                                                              trcode, rqname, i, "매입금액")
-                possible_quantity = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
-                                                            trcode, rqname, i, "매매가능수량")
-                if code in self.account_stock_dict:
-                    continue
-                else:
-                    self.account_stock_dict[code] = {}
-                code_nm = code_nm.strip()
-                stock_quantity = int(stock_quantity.strip())
-                buy_price = int(buy_price.strip())
-                learn_rate = float(learn_rate.strip())
-                current_price = int(current_price.strip())
-                total_chegual_price = int(total_chegual_price.strip())
-                possible_quantity = int(possible_quantity.strip())
-
-                self.account_stock_dict[code].update({"종목명": code_nm})
-                self.account_stock_dict[code].update({"보유수량": stock_quantity})
-                self.account_stock_dict[code].update({"매입가": buy_price})
-                self.account_stock_dict[code].update({"수익률(%)": learn_rate})
-                self.account_stock_dict[code].update({"현재가": current_price})
-                self.account_stock_dict[code].update({"매입금액": total_chegual_price})
-                self.account_stock_dict[code].update({'매매가능수량': possible_quantity})
-
-                print("종목코드: %s - 종목명: %s - 보유수량: %s - 매입가:%s - 수익률: %s - 현재가: %s" % (
-                    code, code_nm, stock_quantity, buy_price, learn_rate, current_price))
-                # print(self.account_stock_dict.get('005930')['종목명']), # 가져올때
-                #                print("sPrevNext : %s" % sPrevNext)
-                #                print("계좌에 가지고 있는 종목은 %s " % rows)
-
-                account_stock_dict = self.account_stock_dict
-                ''' # 2 페이지 넘어갈때 처리 필요. 
+        try :
+            # 키움 API 는 요청, 수신으로 진행되기 때문에, 각 함수에 ret 값을 넣기가 어려움. 그래서 각 요청에 대한 수신값을 global 변수에 넣어서 저장해주고, 이것을 main 에서 사용
+            global account_stock_dict
+            global deposit
+            global out_deposit
+            global stocksCnt
+            global not_signed_account_dict
+    
+            print("요청이름 : " + rqname)
+    
+            # 미체결
+            if rqname == "opt10075_req" :
+                print("rqName = opt10075_req")
+                stock_code = {}
+                cnt = self.kiwoom.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
+    
+                for i in range(cnt):
+                    stock_code = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "종목코드")
+                    stock_code = stock_code.strip()
+    
+                    stock_order_number = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문번호")
+                    stock_order_number = int(stock_order_number)
+    
+                    stock_name = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "종목명")
+                    stock_name = stock_name.strip()
+    
+                    stock_order_type = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문구분")
+                    stock_order_type = stock_order_type.strip().lstrip('+').lstrip('-')
+    
+                    stock_order_price = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문가격")
+                    stock_order_price = int(stock_order_price)
+    
+                    stock_order_quantity = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문수량")
+                    stock_order_quantity = int(stock_order_quantity)
+    
+                    stock_not_signed_quantity = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "미체결수량")
+                    stock_not_signed_quantity = int(stock_not_signed_quantity)
+    
+                    stock_signed_quantity = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "체결량")
+                    stock_signed_quantity = int(stock_signed_quantity)
+    
+                    stock_present_price = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "현재가")
+                    stock_present_price = int(
+                        stock_present_price.strip().lstrip('+').lstrip('-'))
+    
+                    stock_order_status = self.kiwoom.dynamicCall(
+                        "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "주문상태")
+                    stock_order_status = stock_order_status.strip()
+    
+                    if not stock_code in self.not_signed_account_dict:
+                        self.not_signed_account_dict[stock_code] = {}
+    
+                    self.not_signed_account_dict[stock_code].update(
+                        {'종목명': stock_name})
+                    self.not_signed_account_dict[stock_code].update(
+                        {'주문구분': stock_order_type})
+                    self.not_signed_account_dict[stock_code].update(
+                        {'주문가격': stock_order_price})
+                    self.not_signed_account_dict[stock_code].update(
+                        {'주문수량': stock_order_quantity})
+                    self.not_signed_account_dict[stock_code].update(
+                        {'미체결수량': stock_not_signed_quantity})
+                    self.not_signed_account_dict[stock_code].update(
+                        {'체결량': stock_signed_quantity})
+                    self.not_signed_account_dict[stock_code].update(
+                        {'현재가': stock_present_price})
+                    self.not_signed_account_dict[stock_code].update(
+                        {'주문상태': stock_order_status})
+    
+                not_signed_account_dict = self.not_signed_account_dict
+                
                 if sPrevNext == "2":
-                    self.detail_account_mystock(self.account_num, sPrevNext="2")
+                    self.not_signed_account(2)
                 else:
-                    self.cancel_screen_number("0111")
-                    self.detail_account_mystock_loop.exit()
-                '''
-                # self.cancel_screen_number("0111")
-                # self.detail_account_mystock_loop.exit()
+                    # self.opt10075_req_loop.exit()
+                    self.tr_event_loop.exit()
+                
+    
+            # 예수금
+            if rqname == "opw00001_req":
+                print("rqName = opw00001_req")
+                self.deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
+                                                       "예수금")
+                self.deposit = int(self.deposit)
+                deposit = self.deposit
+                self.out_deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
+                                                           "출금가능금액")
+                self.out_deposit = int(self.out_deposit)
+                out_deposit = self.out_deposit
+    
+                # self.opw00001_req_loop.exit()
                 self.tr_event_loop.exit()
+    
+                print('deposit : {0}, out_deposit : {1}'.format(deposit, out_deposit))
+    
+            # 총매입금액
+            if rqname == "opw00018_req":
+                # print("rqName = opw00018_req")
+                total_buy_money = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString", trcode, rqname, 0,
+                                                          "총매입금액")
+                self.total_buy_money = int(total_buy_money)
+                # 보유 종목 가져오기
+                rows = self.kiwoom.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
+                stocksCnt = rows
+                # 계좌가 보유중인 종목의 갯수를 카운트해준다.
+                print("보유종목수 : {0}".format(rows))
+    
+                if rows == 0:
+                    account_stock_dict = {}
+                    # self.detail_account_mystock_loop.exit()
+                    self.tr_event_loop.exit()
+    
+                for i in range(rows):
+                    code = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                                   trcode, rqname, i, "종목번호")
+                    code = code.strip()[1:]
+                    code_nm = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                                      trcode, rqname, i, "종목명")
+                    stock_quantity = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                                             trcode, rqname, i, "보유수량")
+                    buy_price = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                                        trcode, rqname, i, "매입가")  # 매입가 평균
+                    learn_rate = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                                         trcode, rqname, i, "수익률(%)")
+                    current_price = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                                            trcode, rqname, i, "현재가")
+                    total_chegual_price = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                                                  trcode, rqname, i, "매입금액")
+                    possible_quantity = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
+                                                                trcode, rqname, i, "매매가능수량")
+                    if code in self.account_stock_dict:
+                        continue
+                    else:
+                        self.account_stock_dict[code] = {}
+                    code_nm = code_nm.strip()
+                    stock_quantity = int(stock_quantity.strip())
+                    buy_price = int(buy_price.strip())
+                    learn_rate = float(learn_rate.strip())
+                    current_price = int(current_price.strip())
+                    total_chegual_price = int(total_chegual_price.strip())
+                    possible_quantity = int(possible_quantity.strip())
+    
+                    self.account_stock_dict[code].update({"종목명": code_nm})
+                    self.account_stock_dict[code].update({"보유수량": stock_quantity})
+                    self.account_stock_dict[code].update({"매입가": buy_price})
+                    self.account_stock_dict[code].update({"수익률(%)": learn_rate})
+                    self.account_stock_dict[code].update({"현재가": current_price})
+                    self.account_stock_dict[code].update({"매입금액": total_chegual_price})
+                    self.account_stock_dict[code].update({'매매가능수량': possible_quantity})
+    
+                    print("종목코드: %s - 종목명: %s - 보유수량: %s - 매입가:%s - 수익률: %s - 현재가: %s" % (
+                        code, code_nm, stock_quantity, buy_price, learn_rate, current_price))
+                    # print(self.account_stock_dict.get('005930')['종목명']), # 가져올때
+                    #                print("sPrevNext : %s" % sPrevNext)
+                    #                print("계좌에 가지고 있는 종목은 %s " % rows)
+    
+                    account_stock_dict = self.account_stock_dict
+                    ''' # 2 페이지 넘어갈때 처리 필요. 
+                    if sPrevNext == "2":
+                        self.detail_account_mystock(self.account_num, sPrevNext="2")
+                    else:
+                        self.cancel_screen_number("0111")
+                        self.detail_account_mystock_loop.exit()
+                    '''
+                    # self.cancel_screen_number("0111")
+                    # self.detail_account_mystock_loop.exit()
+                    self.tr_event_loop.exit()
+            except Exception as e :
+                print("{0} Err _ {1}".format(rqname, e))
+            
+
+
                     
         if rqname == "opt10086_pre_req":
             self.preStart = self.kiwoom.dynamicCAll("CommGetData(QString, QString, QString, int, QString)",
