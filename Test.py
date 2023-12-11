@@ -403,6 +403,9 @@ if __name__ == "__main__":
                     possibleQuantity = int(account_stock_dict[i]['매매가능수량'])
                     dfMinute = dataProcessing.GetStockPriceMinute(code)
                     print(2)
+                    print("buy_price = {0}".format(buy_price))
+                    print("sellRate = {0}".format(sellRate))
+                    print("dfMinute.loc[0]['체결가'] = {0}".format(dfMinute.loc[0]['체결가']))
                     print('매도가격 : {0}, 현재가격 : {1}'.format(buy_price * sellRate, dfMinute.loc[0]['체결가']))
     
                     if buy_price * sellRate > dfMinute.loc[0]['체결가']:  # 체결가가 매입금액의 n% 이상일 때 진행
