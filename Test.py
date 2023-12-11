@@ -15,7 +15,7 @@ import json
 import os
 import random
 
-class MyWindow(QMainWindow, acc):
+class MyWindow(QMainWindow):
     # QMainWindow 를 상속
     delay = 3.6
 
