@@ -189,18 +189,12 @@ class MyWindow(QMainWindow):
                 print("rqName = opw00001_req")
                 self.deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
                                                        "예수금")
-                print(1)
                 self.deposit = int(self.deposit)
-                print(2)
                 deposit = self.deposit
-                print(3)
                 self.out_deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
                                                            "출금가능금액")
-                print(4)
                 self.out_deposit = int(self.out_deposit)
-                print(5)
                 out_deposit = self.out_deposit
-                print(6)
     
                 # self.opw00001_req_loop.exit()
                 self.tr_event_loop.exit()
@@ -413,7 +407,7 @@ if __name__ == "__main__":
     # myWindow.detail_account_mystock(account_num, 0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
 
     while (True):
-        if datetime.datetime.now().hour >= 16:
+        if datetime.datetime.now().hour >= 20:
             print(datetime.datetime.now().hour)
             break
     
