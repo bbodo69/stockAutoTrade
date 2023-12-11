@@ -178,7 +178,7 @@ class MyWindow(QMainWindow):
                 not_signed_account_dict = self.not_signed_account_dict
                 
                 if sPrevNext == "2":
-                    self.not_signed_account(2)
+                    self.not_signed_account("8065202611", 2)
                 else:
                     # self.opt10075_req_loop.exit()
                     self.tr_event_loop.exit()
