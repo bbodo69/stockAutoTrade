@@ -394,13 +394,10 @@ if __name__ == "__main__":
         if len(account_stock_dict) > 0:
             for i in account_stock_dict:
                 try:
-                    print(1)
                     code = i
                     buy_price = int(account_stock_dict[i]['매입가'])
-                    print(2)
                     stockAmount = int(account_stock_dict[i]['보유수량'])
                     possibleQuantity = int(account_stock_dict[i]['매매가능수량'])
-                    print(3)
                     dfMinute = dataProcessing.GetStockPriceMinute(code)
                     
                     print('매도가격 : {0}, 현재가격 : {1}'.format(buy_price * sellRate, dfMinute.loc[0]['체결가']))
