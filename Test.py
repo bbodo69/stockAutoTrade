@@ -264,22 +264,19 @@ class MyWindow(QMainWindow):
                     #                print("계좌에 가지고 있는 종목은 %s " % rows)
     
                     account_stock_dict = self.account_stock_dict
-                    ''' # 2 페이지 넘어갈때 처리 필요. 
                     if sPrevNext == "2":
                         self.detail_account_mystock(self.account_num, sPrevNext="2")
                     else:
                         self.cancel_screen_number("0111")
-                        self.detail_account_mystock_loop.exit()
-                    '''
+                        # self.detail_account_mystock_loop.exit()
+                        self.tr_event_loop.exit()
+        
                     # self.cancel_screen_number("0111")
                     # self.detail_account_mystock_loop.exit()
-                    self.tr_event_loop.exit()
+                    # self.tr_event_loop.exit()
         except Exception as e :
             print("{0} Err _ {1}".format(rqname, e))
-            
 
-
-                    
         if rqname == "opt10086_pre_req":
             self.preStart = self.kiwoom.dynamicCAll("CommGetData(QString, QString, QString, int, QString)",
                                                     trcode, "",
