@@ -259,6 +259,7 @@ class MyWindow(QMainWindow):
                 if sPrevNext == "2":
                     self.detail_account_mystock(self.account_num, sPrevNext="2")
                 else:
+                    self.cancel_screen_number("0111")
                     self.detail_account_mystock_loop.exit()
         if rqname == "opt10086_pre_req":
             self.preStart = self.kiwoom.dynamicCAll("CommGetData(QString, QString, QString, int, QString)",
@@ -299,7 +300,8 @@ class MyWindow(QMainWindow):
         self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", sPrevNext,
                                 "0111")
         # CommRqData
-        self.detail_account_mystock_loop.exec()
+        if not self.detail_account_mystock_loop.isRunning():
+            self.detail_account_mystock_loop.exec_()
         print("detail_account_mystock 종료")
 
     def get_deposit(self, account, pw, sPrevNext="0"):
@@ -334,6 +336,9 @@ class MyWindow(QMainWindow):
 
         if not self.opt10075_req_loop.isRunning():
             self.opt10075_req_loop.exec_()
+
+    def cancel_screen_number(self, screen_no):
+        self.dynamicCall("DisconnectRealData(QString)", screen_no)
 
 
 if __name__ == "__main__":
