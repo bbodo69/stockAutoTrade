@@ -340,23 +340,27 @@ def GetStockPriceWithPage(code, page):
 
 def GetStockPriceMinute(code):
     # 한국 지수별 가격정보 가져오기
-
-    headers = {
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36'}
-    time = datetime.today().strftime('%Y%m%d')
-    time = str(time) + ("180000")
-
-    url = "https://finance.naver.com/item/sise_time.naver?code={}&thistime={}&page={}".format(code, time, 1)
-    res = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
-    html = BeautifulSoup(res.text, 'lxml')
-    pgrr = html.find('td', class_='pgRR').a['href']
-    page = pgrr.split("=")[-1]
-    page = int(page) + 1
-    df = pd.DataFrame()
-    for i in range(1, page):
-        url = "https://finance.naver.com/item/sise_time.naver?code={}&thistime={}&page={}".format(code, time, i)
+    try :
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36'}
+        time = datetime.today().strftime('%Y%m%d')
+        time = str(time) + ("180000")
+    
+        url = "https://finance.naver.com/item/sise_time.naver?code={}&thistime={}&page={}".format(code, time, 1)
         res = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
-        df = pd.concat([df, pd.read_html(res.text, header=0)[0]], axis=0)
+        html = BeautifulSoup(res.text, 'lxml')
+        pgrr = html.find('td', class_='pgRR').a['href']
+        page = pgrr.split("=")[-1]
+        page = int(page) + 1
+        df = pd.DataFrame()
+        for i in range(1, page):
+            url = "https://finance.naver.com/item/sise_time.naver?code={}&thistime={}&page={}".format(code, time, i)
+            res = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
+            df = pd.concat([df, pd.read_html(res.text, header=0)[0]], axis=0)
+    except Exception as e :
+        df = dataProcessing.GetStockPrice(code, 20)
+        df.rename(columns={"체결가": "종가"})
+        print(df)
 
     # df.dropna()를 이용해 결측값 있는 행 제거
     df = df.dropna()
