@@ -256,11 +256,16 @@ class MyWindow(QMainWindow):
                 #                print("계좌에 가지고 있는 종목은 %s " % rows)
 
                 account_stock_dict = self.account_stock_dict
+                ''' # 2 페이지 넘어갈때 처리 필요. 
                 if sPrevNext == "2":
                     self.detail_account_mystock(self.account_num, sPrevNext="2")
                 else:
                     self.cancel_screen_number("0111")
                     self.detail_account_mystock_loop.exit()
+                '''
+                self.cancel_screen_number("0111")
+                self.detail_account_mystock_loop.exit()
+                    
         if rqname == "opt10086_pre_req":
             self.preStart = self.kiwoom.dynamicCAll("CommGetData(QString, QString, QString, int, QString)",
                                                     trcode, "",
@@ -440,7 +445,7 @@ if __name__ == "__main__":
         if buyFlag:
             for row in codes:
                 try:
-                    codes = random.sample(codes, 50) # 코스피 중 n개 샘플 먼저 진행
+                    codes = random.sample(codes, 30) # 코스피 중 n개 샘플 먼저 진행
                     if out_deposit < amount:
                         break
                     code = row['code']
