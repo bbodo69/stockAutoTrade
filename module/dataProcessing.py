@@ -360,8 +360,6 @@ def GetStockPriceMinute(code):
     except Exception as e :
         df = GetStockPrice(code, 20)
         df.rename(columns={"종가": "체결가"}, inplace = True)
-        print(df)
-        time.time.sleep(30)
 
     # df.dropna()를 이용해 결측값 있는 행 제거
     df = df.dropna()
