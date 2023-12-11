@@ -111,6 +111,7 @@ class MyWindow(QMainWindow):
                 "GetRepeatCnt(QString, QString)", sTrCode, sRQName)
 
             for i in range(cnt):
+                print(1)
                 stock_code = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", sTrCode, sRQName, i, "종목코드")
                 stock_code = stock_code.strip()
