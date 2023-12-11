@@ -259,8 +259,10 @@ class MyWindow(QMainWindow):
                 account_stock_dict = self.account_stock_dict
                 print(2)
                 if sPrevNext == "2":
+                    print(21)
                     self.detail_account_mystock(sPrevNext="2")
                 else:
+                    print(22)
                     self.detail_account_mystock_loop.exit()
                 print(3)
         if rqname == "opt10086_pre_req":
