@@ -401,7 +401,6 @@ if __name__ == "__main__":
                     stockAmount = int(account_stock_dict[i]['보유수량'])
                     possibleQuantity = int(account_stock_dict[i]['매매가능수량'])
                     dfMinute = dataProcessing.GetStockPriceMinute(code)
-                    print("dfMinute = {0}".format(dfMinute))
                     print('매도가격 : {0}, 현재가격 : {1}'.format(buy_price * sellRate, dfMinute.loc[0]['체결가']))
     
                     if buy_price * sellRate > dfMinute.loc[0]['체결가']:  # 체결가가 매입금액의 n% 이상일 때 진행
@@ -426,7 +425,6 @@ if __name__ == "__main__":
                     # 라인 보내기
                     messageInfo = '매도 Err : {0}'.format(e)
                     Common.SendLine(messageInfo)
-                    time.sleep(20)
     
         # 예수금 존재할 때만, 매수 시도
         myWindow.get_deposit(account_num, pw)
