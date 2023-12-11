@@ -389,7 +389,9 @@ if __name__ == "__main__":
         myWindow.not_signed_account(account_num,
                                         0)
     
-        if stocksCnt > 20:
+        if stocksCnt > 50:
+            messageInfo = '보유종목 갯수 : {0}'.format(stocksCnt)
+            Common.SendLine(messageInfo)
             buyFlag = False
     
         # 매도 ::: 보유종목 있을시, 매도진행
