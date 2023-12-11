@@ -29,6 +29,7 @@ class MyWindow(QMainWindow):
         self.use_money_percent = 0
         self.account_list = []
         self.account_stock_dict = {}  # 보유종목
+        self.not_signed_account_dict = {}
 
         super().__init__()
 
@@ -105,6 +106,7 @@ class MyWindow(QMainWindow):
         # 미체결
         if rqname == "opt10075_req" :
             print("rqName = opt10075_req")
+            stock_code = {}
             cnt = self.dynamicCall(
                 "GetRepeatCnt(QString, QString)", sTrCode, sRQName)
 
@@ -170,10 +172,13 @@ class MyWindow(QMainWindow):
                 self.not_signed_account_dict[stock_code].update(
                     {'주문상태': stock_order_status})
 
+            not_signed_account_dict.update(self.not_signed_account_dict)
+            
             if sPrevNext == "2":
                 self.not_signed_account(2)
             else:
                 self.opt10075_req_loop.exit()
+            
 
         # 예수금
         if rqname == "opw00001_req":
@@ -245,13 +250,14 @@ class MyWindow(QMainWindow):
                 self.account_stock_dict[code].update({"매입금액": total_chegual_price})
                 self.account_stock_dict[code].update({'매매가능수량': possible_quantity})
 
-                account_stock_dict = self.account_stock_dict
-
                 print("종목코드: %s - 종목명: %s - 보유수량: %s - 매입가:%s - 수익률: %s - 현재가: %s" % (
                     code, code_nm, stock_quantity, buy_price, learn_rate, current_price))
                 # print(self.account_stock_dict.get('005930')['종목명']), # 가져올때
                 #                print("sPrevNext : %s" % sPrevNext)
                 #                print("계좌에 가지고 있는 종목은 %s " % rows)
+
+                account_stock_dict.update(self.account_stock_dict) 
+                
                 if sPrevNext == "2":
                     self.detail_account_mystock(sPrevNext="2")
                 else:
