@@ -110,7 +110,6 @@ class MyWindow(QMainWindow):
             cnt = self.kiwoom.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
 
             for i in range(cnt):
-                print(1)
                 stock_code = self.kiwoom.dynamicCall(
                     "GetCommData(QString, QString, int, QString)", trcode, rqname, i, "종목코드")
                 stock_code = stock_code.strip()
@@ -397,32 +396,33 @@ if __name__ == "__main__":
         if len(account_stock_dict) > 0:
             for i in account_stock_dict:
                 try:
+                    print(1)
                     code = i
                     buy_price = int(account_stock_dict[i]['매입가'])
                     stockAmount = int(account_stock_dict[i]['보유수량'])
                     possibleQuantity = int(account_stock_dict[i]['매매가능수량'])
                     dfMinute = dataProcessing.GetStockPriceMinute(code)
-                    
+                    print(2)
                     print('매도가격 : {0}, 현재가격 : {1}'.format(buy_price * sellRate, dfMinute.loc[0]['체결가']))
     
                     if buy_price * sellRate > dfMinute.loc[0]['체결가']:  # 체결가가 매입금액의 n% 이상일 때 진행
                         continue
-    
+                    print(3)
                     # if useTradeAlgorithm:  # 거래에 사용되는 알고리즘 있으면 여기서 지정
                     #     sellPrice = dataProcessing.CheckReturnPosition(dfMinute, "up", 3)  # 가격 반전 확인
                     # else:
                     #    sellPrice = int(dfMinute.loc[0]['체결가'])
                     sellPrice = int(dfMinute.loc[0]['체결가'])
-
+                    print(4)
                     if sellPrice is None:  # 가격 반전이 나오지 않았을 경우, 다음 code 확인
                         continue
-    
+                    print(5)
                     if possibleQuantity < 1:  # 매매가능수량이 없을 때, 다음 code 확인
                         continue
-    
+                    print(6)
                     myWindow.sell_Stock(code, possibleQuantity, sellPrice, account_num)
                     time.sleep(0.3)
-
+                    print(7)
                     # 라인 보내기
                     messageInfo = '\n총 종목코드 : {0}\n총 수량 : {1}\n총 매도가 : {2}'.format(code, possibleQuantity, sellPrice)
                     Common.SendLine(messageInfo)
