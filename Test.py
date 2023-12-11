@@ -212,6 +212,7 @@ class MyWindow(QMainWindow):
                 self.detail_account_mystock_loop.exit()
 
             for i in range(rows):
+                print(1)
                 code = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
                                                trcode, rqname, i, "종목번호")
                 code = code.strip()[1:]
@@ -256,12 +257,12 @@ class MyWindow(QMainWindow):
                 #                print("계좌에 가지고 있는 종목은 %s " % rows)
 
                 account_stock_dict = self.account_stock_dict
-                
+                print(2)
                 if sPrevNext == "2":
                     self.detail_account_mystock(sPrevNext="2")
                 else:
                     self.detail_account_mystock_loop.exit()
-
+                print(3)
         if rqname == "opt10086_pre_req":
             self.preStart = self.kiwoom.dynamicCAll("CommGetData(QString, QString, QString, int, QString)",
                                                     trcode, "",
