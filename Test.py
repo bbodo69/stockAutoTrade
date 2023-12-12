@@ -412,6 +412,7 @@ if __name__ == "__main__":
         # 매도 진행, 계좌의 보유종목 조회
         myWindow.detail_account_mystock(account_num,
                                         0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
+        print("보유종목조회 완료")
         # 미체결 조회
         myWindow.not_signed_account(account_num,
                                         0)
