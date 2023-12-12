@@ -269,18 +269,18 @@ class MyWindow(QMainWindow):
                     #                print("계좌에 가지고 있는 종목은 %s " % rows)
     
                     account_stock_dict = self.account_stock_dict
-                    if sPrevNext == "2":
-                        print("보유종목2페이지")
-                        self.detail_account_mystock(self.account_num, sPrevNext="2")
-                    else:
-                        self.cancel_screen_number("0111")
-                        # self.detail_account_mystock_loop.exit()
-                        self.tr_event_loop.exit()
-        
-                    # self.cancel_screen_number("0111")
+                if sPrevNext == "2":
+                    print("보유종목2페이지")
+                    self.detail_account_mystock(self.account_num, sPrevNext="2")
+                else:
+                    self.cancel_screen_number("0111")
                     # self.detail_account_mystock_loop.exit()
-                    # self.tr_event_loop.exit()
-                    print("보유종목for끝")
+                    self.tr_event_loop.exit()
+    
+                # self.cancel_screen_number("0111")
+                # self.detail_account_mystock_loop.exit()
+                # self.tr_event_loop.exit()
+                print("보유종목for끝")
         except Exception as e :
             print("{0} Err _ {1}".format(rqname, e))
 
