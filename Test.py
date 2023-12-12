@@ -440,7 +440,7 @@ if __name__ == "__main__":
                     dfMinute = dataProcessing.GetStockPriceMinute(code)
                     print('매도가격 : {0}, 현재가격 : {1}'.format(buy_price * sellRate, dfMinute.loc[0]['체결가']))
     
-                    if buy_price * sellRate > dfMinute.loc[0]['체결가']:  # 체결가가 매입금액의 n% 이상일 때 진행
+                    if not (buy_price * sellRate < dfMinute.loc[0]['체결가'] or buy_price * stopLoss > dfMinute.loc[0]['체결가']):  # 체결가가 매입금액의 n% 이상일 때 진행, 손절 가격 도달시 매도 진행
                         continue
                     # if useTradeAlgorithm:  # 거래에 사용되는 알고리즘 있으면 여기서 지정
                     #     sellPrice = dataProcessing.CheckReturnPosition(dfMinute, "up", 3)  # 가격 반전 확인
