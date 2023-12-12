@@ -11,7 +11,7 @@ import datetime
 import time
 import matplotlib.pyplot as plt
 
-def DailyCode() :
+def DailyCode(filePath) :
   rootPath = 'C:\Python_Stocks'
   inputFolderPath = os.path.join(rootPath, 'input')
   outputFolderPath = os.path.join(rootPath, 'output')
@@ -51,5 +51,5 @@ def DailyCode() :
       dfResult.loc[len(dfResult)] = list_row
       Image.SaveDFImage(row['code'], dfCode, imgFilePath)
   
-  dfResult.to_json(path_or_buf=os.path.join(resultFileFolder, resultFileName), orient="records")
+  dfResult.to_json(path_or_buf=filePath, orient="records")
   print("전체 : {0}, 대상 : {1}".format(len(df), len(lstResult)))
