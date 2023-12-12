@@ -10,7 +10,7 @@ import module.dataProcessing as dataProcessing
 import module.GoogleDriveDownload as gdd
 import module.excel_collection as excel_ceollection
 import module.LoadConfig as LoadConfig
-import process.Test as testReport
+import module.DailyCode as DailyCode
 # import module.sender_collection as sender_collection
 import json
 import os
@@ -531,7 +531,7 @@ if __name__ == "__main__":
         time.sleep(20)
         
     print("자동매매 종료, 일일 리포트 생성 시작")
-    testReport.testMain()
+    DailyCode.DailyCode("dailyConfirmCode.json")
 
     # try:
     #     app = QApplication(sys.argv)
