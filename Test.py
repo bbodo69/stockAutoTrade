@@ -215,11 +215,14 @@ class MyWindow(QMainWindow):
                 print("보유종목수 : {0}".format(rows))
     
                 if rows == 0:
+                    print("보유종목rows시작")
                     account_stock_dict = {}
                     # self.detail_account_mystock_loop.exit()
                     self.tr_event_loop.exit()
+                    print("보유종목rows끝")
     
                 for i in range(rows):
+                    print("보유종목for시작")
                     code = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
                                                    trcode, rqname, i, "종목번호")
                     code = code.strip()[1:]
@@ -274,6 +277,7 @@ class MyWindow(QMainWindow):
                     # self.cancel_screen_number("0111")
                     # self.detail_account_mystock_loop.exit()
                     # self.tr_event_loop.exit()
+                    print("보유종목for시작")
         except Exception as e :
             print("{0} Err _ {1}".format(rqname, e))
 
