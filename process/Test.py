@@ -53,5 +53,3 @@ def testMain() :
   
   dfResult.to_json(path_or_buf=os.path.join(resultFileFolder, resultFileName), orient="records")
   print("전체 : {0}, 대상 : {1}".format(len(df), len(lstResult)))
-
-testMain()
