@@ -244,6 +244,7 @@ class MyWindow(QMainWindow):
                         continue
                     else:
                         self.account_stock_dict[code] = {}
+                        
                     code_nm = code_nm.strip()
                     stock_quantity = int(stock_quantity.strip())
                     buy_price = int(buy_price.strip())
