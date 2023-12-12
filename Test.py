@@ -242,6 +242,7 @@ class MyWindow(QMainWindow):
                                                                 trcode, rqname, i, "매매가능수량")
                     if code in self.account_stock_dict:
                         continue
+                        print("보유종목forContinue")
                     else:
                         self.account_stock_dict[code] = {}
                         
