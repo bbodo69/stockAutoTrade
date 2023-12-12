@@ -10,6 +10,7 @@ import module.dataProcessing as dataProcessing
 import module.GoogleDriveDownload as gdd
 import module.excel_collection as excel_ceollection
 import module.LoadConfig as LoadConfig
+import process.Test as testReport
 # import module.sender_collection as sender_collection
 import json
 import os
@@ -412,7 +413,7 @@ if __name__ == "__main__":
     # myWindow.detail_account_mystock(account_num, 0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
 
     while (True):
-        if datetime.datetime.now().hour >= 20:
+        if datetime.datetime.now().hour >= 16:
             print(datetime.datetime.now().hour)
             break
     
@@ -521,8 +522,9 @@ if __name__ == "__main__":
                     Common.SendLine(messageInfo)
 
         time.sleep(20)
-        if datetime.datetime.now().hour > 20:
-            break
+        
+    print("자동매매 종료, 일일 리포트 생성 시작")
+    testReport.testMain()
 
     # try:
     #     app = QApplication(sys.argv)
