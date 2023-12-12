@@ -361,7 +361,7 @@ class MyWindow(QMainWindow):
             self.tr_event_loop.exec_()
 
     def cancel_screen_number(self, screen_no):
-        self.dynamicCall("DisconnectRealData(QString)", screen_no)
+        self.kiwoom.dynamicCall("DisconnectRealData(QString)", screen_no)
 
 
 if __name__ == "__main__":
