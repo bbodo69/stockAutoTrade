@@ -241,8 +241,8 @@ class MyWindow(QMainWindow):
                     possible_quantity = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)",
                                                                 trcode, rqname, i, "매매가능수량")
                     if code in self.account_stock_dict:
-                        continue
                         print("보유종목forContinue")
+                        continue
                     else:
                         self.account_stock_dict[code] = {}
                         
