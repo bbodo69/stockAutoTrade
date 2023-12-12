@@ -277,7 +277,7 @@ class MyWindow(QMainWindow):
                     # self.cancel_screen_number("0111")
                     # self.detail_account_mystock_loop.exit()
                     # self.tr_event_loop.exit()
-                    print("보유종목for시작")
+                    print("보유종목for끝")
         except Exception as e :
             print("{0} Err _ {1}".format(rqname, e))
 
