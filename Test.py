@@ -501,8 +501,8 @@ if __name__ == "__main__":
                     if code in account_stock_dict or code in not_signed_account_dict:  # 보유 종목, 미체결 종목, 금일 매수 종목에 대해서 매수 진행 X
                         continue
 
-                    if code in todayBuyCode :
-                        continue
+                    # if code in todayBuyCode : # 당일 재매수 X
+                    #     continue
 
                     tmpOut_deposit = out_deposit
                     myWindow.buy_Stock(code, quantity, buyPrice, account_num)
