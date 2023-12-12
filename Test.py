@@ -270,6 +270,7 @@ class MyWindow(QMainWindow):
     
                     account_stock_dict = self.account_stock_dict
                     if sPrevNext == "2":
+                        print("보유종목2페이지")
                         self.detail_account_mystock(self.account_num, sPrevNext="2")
                     else:
                         self.cancel_screen_number("0111")
