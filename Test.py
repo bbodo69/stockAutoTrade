@@ -412,6 +412,9 @@ if __name__ == "__main__":
     # print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
     # myWindow.detail_account_mystock(account_num, 0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
 
+    # 사용 변수
+    todayBuyCode = []
+
     while (True):
         if datetime.datetime.now().hour >= 16:
             print(datetime.datetime.now().hour)
@@ -495,7 +498,10 @@ if __name__ == "__main__":
                     if buyPrice is None:
                         continue
 
-                    if code in account_stock_dict or code in not_signed_account_dict:  # 보유 종목, 미체결 종목에 대해서 매수 진행 X
+                    if code in account_stock_dict or code in not_signed_account_dict:  # 보유 종목, 미체결 종목, 금일 매수 종목에 대해서 매수 진행 X
+                        continue
+
+                    if code in todayBuyCode :
                         continue
 
                     tmpOut_deposit = out_deposit
@@ -512,6 +518,7 @@ if __name__ == "__main__":
                     messageInfo = '\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, out_deposit)
                     
                     Common.SendLine(messageInfo)
+                    todayBuyCode.append(code) # 금일 매수 종목 리스트에 삽입
                     
                 except Exception as e:
                     print('매수 Err : {0}'.format(e))
