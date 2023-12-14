@@ -481,17 +481,17 @@ if __name__ == "__main__":
                     code = row['code']
                     # dfMinute = dataProcessing.GetStockPriceMinute(code)
                     dfStock = dataProcessing.GetStockPrice(code, 20)
-                    print('매수가격 : {0}, 현재가격 : {1}'.format(int(int(dfStock.loc[0]['시가']) * buyRate),
+                    print('매수가격 : {0}, 현재가격 : {1}'.format(int(int(dfStock.loc[1]['종가']) * buyRate),
                                                           dfStock.loc[0]['종가']))
                     
-                    if int(dfStock.loc[0]['종가']) > int(int(dfStock.loc[0]['시가']) * buyRate):
+                    if int(dfStock.loc[0]['종가']) > int(int(dfStock.loc[1]['종가']) * buyRate):
                         continue
     
                     # if useTradeAlgorithm:  # 거래에 사용되는 알고리즘 있으면 여기서 구분
                     #     buyPrice = dataProcessing.CheckReturnPosition(dfMinute, "down", 3)  # 가격 반전 확인
                     # else:
                     #     buyPrice = int(dfStock.loc[0]['종가'])
-                    buyPrice = int(dfStock.loc[0]['종가'])
+                    buyPrice = int(dfStock.loc[1]['종가']) * buyRate
                     
                     quantity = amount // buyPrice
     
