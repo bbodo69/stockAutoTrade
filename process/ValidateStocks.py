@@ -31,7 +31,7 @@ totalCnt = 0
 totalBuyCnt = 0
 totalSellBenefitCnt = 0
 totalSellStopLoss = 0
-sampleCnt = 20
+sampleCnt = 30
 
 # 이동평균 증감 패턴에 따른 과거 데이터 매도 매수 파악
 
@@ -868,7 +868,7 @@ for i in [20, 30, 40, 50, 60]:
 # for i in [10, 50, 100] :
 #     createGraphLineAndScatter(i)
 
-lstMA = [20, 40, 60, 100]
+lstMA = [60, 100]
 lstbuyRate = [0.97, 0.98, 0.99]
 lstTakeBenefitRate = [1.015, 1.02, 1.025]
 lstStopLossRate = [0.95, 0.93, 0.91]
