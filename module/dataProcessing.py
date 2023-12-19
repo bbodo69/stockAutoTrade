@@ -1320,7 +1320,7 @@ def calculTrade(df, lstDate, buyRate, takeBenefitRate, stopLossRate, adjustDay=N
             
         # 매수 시점 가격 정보
         # startPrice = int(df.loc[DateIdx]['시가'])
-        startPrice = int(df.loc[DateIdx+1]['종가'])
+        startPrice = int(df.loc[DateIdx+adjustDay]['종가']) # 이평선 크로스 가격
         lowPrice = int(df.loc[DateIdx]['저가'])
         highPrice = int(df.loc[DateIdx]['고가'])
 
@@ -1371,27 +1371,33 @@ def CrossDateStockPriceAndMV(df, dfMA, gubun) :
 
     df = df.set_index('날짜')
     dicResult = {}
+    tmpDate = ''
+    tmpPrice = ''
     tmp = False
     for idx, i in dfMA.iterrows() : # dfMA 반복. 날짜를 키 값으로 받아서 df 가격정보 추출
         if gubun.upper() == "U" :
             if tmp : # 앞 일자에서 조건을 만족
                 if i['종가'] >= df.loc[i['날짜']]['종가'] :
-                    dicResult[i['날짜']] = {'가격' : i['종가']}
+                    dicResult[tmpDate] = {'가격' : tmpPrice}
                     tmp = False
                     continue
             if i['종가'] < df.loc[i['날짜']]['종가'] :
                 tmp = True
+                tmpDate = i['날짜']
+                tmpPrice = i['종가']
             else :
                 tmp = False
             
         elif gubun.upper() == "D" :
             if tmp : 
                 if i['종가'] <= df.loc[i['날짜']]['종가'] :
-                    dicResult[i['날짜']] = {'가격' : i['종가']}
+                    dicResult[tmpDate] = {'가격' : tmpPrice}
                     tmp = False
                     continue
             if i['종가'] > df.loc[i['날짜']]['종가'] :
                 tmp = True
+                tmpDate = i['날짜']
+                tmpPrice = i['종가']
             else :
                 tmp = False
     

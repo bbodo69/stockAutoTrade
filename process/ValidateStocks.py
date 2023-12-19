@@ -31,7 +31,7 @@ totalCnt = 0
 totalBuyCnt = 0
 totalSellBenefitCnt = 0
 totalSellStopLoss = 0
-sampleCnt = 300
+sampleCnt = 20
 
 # 이동평균 증감 패턴에 따른 과거 데이터 매도 매수 파악
 
@@ -170,7 +170,110 @@ def saveSortingCode(saveFilePath) :
     # dfResult -> json 파일 변환
     os.remove(saveFilePath)
     dfResult.to_json(saveFilePath, orient="records")
-    
+
+def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
+    try :
+        dfSample = df.sample(sampleCnt).sort_index()
+        cntIdx = 1
+        totalCnt = 0
+        totalBuyCnt = 0
+        totalSellBenefitCnt = 0
+        totalSellStopLoss = 0
+        totalTime = 0
+
+        # Total df 생성
+        dfTotal = pd.DataFrame(columns=['code', '총', '매수', '익절', '손절'])
+
+        totalFilePath = os.path.join(imgFolderPath, 'total_' + str(MA) + '_' + str(buyRate) + '_' + str(takeBenefitRate) + '_' + str(stopLossRate) + '.xlsx')
+
+        for idx, row in dfSample.iterrows():
+            # 초기화
+            dfCode = dataProcessing.GetStockPrice(row['code'], 300)
+
+            # 배당락, 병합, 분할 표준화
+            dfCode = dataProcessing.standardizationStockSplit(dfCode)
+            startTime = time.time()
+            lstDate = []
+
+            # 이동평균선 구하기
+            dfMAtarget = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
+
+            lstScatterDic = []
+
+            dicGetDateFollowingMAPattern = dataProcessing.CrossDateStockPriceAndMV(dfCode, dfMAtarget, 'd')
+
+            for i in dicGetDateFollowingMAPattern:
+                dicGetDateFollowingMAPattern[i]['color'] = 'red'
+            lstScatterDic.append(dicGetDateFollowingMAPattern)
+
+            for i in lstScatterDic:
+                for j in i:
+                    lstDate.append(j)
+
+            dicTmpResult = dataProcessing.calculTrade(df=dfCode, lstDate=lstDate, buyRate=buyRate,
+                                                      takeBenefitRate=takeBenefitRate, stopLossRate=stopLossRate,
+                                                      adjustDay=1)
+            totalCnt += dicTmpResult['총']
+            totalBuyCnt += dicTmpResult['매수']
+            totalSellBenefitCnt += dicTmpResult['익절']
+            totalSellStopLoss += dicTmpResult['손절']
+
+            # 매도, 매수, 익절, 손절 계산 구하기
+            print(row['code'])
+            print('::: 총 갯수 : {0}, 총 매수 : {1}, 총 익절 : {2}, 총 손절 : {3}'.format(dicTmpResult['총'],
+                                                                              dicTmpResult['매수'],
+                                                                              dicTmpResult['익절'],
+                                                                              dicTmpResult['손절']))
+            list_row = [row['code'], dicTmpResult['총'], dicTmpResult['매수'], dicTmpResult['익절'], dicTmpResult['손절']]
+            dfTotal.loc[len(dfTotal)] = list_row
+
+            print('{0} / {1} ::: 총 갯수 : {2}, 총 매수 : {3}, 총 익절 : {4}, 총 손절 : {5}'.format(cntIdx,
+                                                                                        len(dfSample),
+                                                                                        totalCnt,
+                                                                                        totalBuyCnt,
+                                                                                        totalSellBenefitCnt,
+                                                                                        totalSellStopLoss))
+            cntIdx += 1
+
+            # 소요시간 출력
+            totalTime += time.time() - startTime
+            avgTime = round(((totalTime / cntIdx)), 2)
+            print("평균 개당 소요 시간 : {0} 초".format(avgTime))
+
+        # Total 정보 입력
+        list_row = ['Total', totalCnt, totalBuyCnt, totalSellBenefitCnt, totalSellStopLoss]
+        dfTotal.loc[len(dfTotal)] = list_row
+        print("totalBuyCnt : {0}, totalBuyCnt : {1}".format(totalBuyCnt, totalBuyCnt))
+        list_row = ['비율', totalCnt, round(totalBuyCnt * 100 / totalBuyCnt, 1),
+                    round(totalSellBenefitCnt * 100 / totalBuyCnt, 1),
+                    round(totalSellStopLoss * 100 / totalBuyCnt, 1)]
+        dfTotal.loc[len(dfTotal)] = list_row
+
+        # Total Excel 저장
+        excel_collection.saveDFToNewExcel(totalFilePath, 'Total', dfTotal)
+
+        # 라인 보내기
+        totalremain = totalBuyCnt - totalSellBenefitCnt - totalSellStopLoss
+        benefitPerBuy = round(((totalSellBenefitCnt * (
+                takeBenefitRate - 0.005) + totalSellStopLoss * (
+                                            stopLossRate - 0.005) + totalremain) - totalBuyCnt) / totalBuyCnt * 100,
+                              2)
+        messageInfo = '\n조건 : {6}\n총 갯수 : {0}\n총 매수 : {1}\n총 익절 : {2}\n총 손절 : {3}\n총 유지 : {4}\n총매입가의이익률(%) : {5}'.format(
+            totalCnt,
+            totalBuyCnt,
+            totalSellBenefitCnt,
+            totalSellStopLoss,
+            totalremain,
+            benefitPerBuy,
+            str(MA) + '_' + str(buyRate) + '_' + str(takeBenefitRate) + '_' + str(stopLossRate))
+        Common.SendLine(messageInfo)
+
+    except Exception as e:
+        print(e)
+
+    # 컴퓨터 강제종료
+    # os.system("shutdown -s -t 300")
+
 def createGraphLineAndScatter(MA):
     '''
     조건 설정
@@ -293,7 +396,7 @@ def createGraphLineAndScatter(MA):
             dfMA90 = dataProcessing.GetMovingAverageRetDF(dfCode, 90)
             dfMA100 = dataProcessing.GetMovingAverageRetDF(dfCode, 100)
             dfMAtarget = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
-            
+
             lstPlotDF = []
             lstPlotDF.append([dfCode, '날짜', '종가', 'solid', 'black'])
             lstPlotDF.append([dfCode, '날짜', '저가', 'solid', 'blue'])
@@ -356,8 +459,13 @@ def createGraphLineAndScatter(MA):
 
             takeBenefitRate = 1.02
             stopLossRate = 0.95
-            
-            dicTmpResult = dataProcessing.calculTrade(df=dfCode, lstDate=lstDate, buyRate=0.99, takeBenefitRate=takeBenefitRate, stopLossRate=stopLossRate, adjustDay=1)
+            buyRate = 0.99
+
+            lstbuyRate = [0.97, 0,98, 0,99]
+            lstTakeBenefitRate = [1.015, 1.02, 1.025]
+            lstStopLossRate = [0.95, 0.93, 0.91]
+
+            dicTmpResult = dataProcessing.calculTrade(df=dfCode, lstDate=lstDate, buyRate=buyRate, takeBenefitRate=takeBenefitRate, stopLossRate=stopLossRate, adjustDay=1)
             totalCnt += dicTmpResult['총']
             totalBuyCnt += dicTmpResult['매수']
             totalSellBenefitCnt += dicTmpResult['익절']
@@ -760,5 +868,13 @@ for i in [20, 30, 40, 50, 60]:
 # for i in [10, 50, 100] :
 #     createGraphLineAndScatter(i)
 
-sectionsCount()
+lstMA = [20, 40, 60, 100]
+lstbuyRate = [0.97, 0.98, 0.99]
+lstTakeBenefitRate = [1.015, 1.02, 1.025]
+lstStopLossRate = [0.95, 0.93, 0.91]
 
+for MA in lstMA :
+    for buyRate in lstbuyRate:
+        for takeBenefitRate in lstTakeBenefitRate :
+            for stopLossRate in lstStopLossRate :
+                calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
