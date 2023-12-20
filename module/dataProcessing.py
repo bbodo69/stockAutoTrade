@@ -1465,26 +1465,29 @@ def CodesAveragePriceInfo(lstCode, day) :
         dfCode = GetStockPrice(code, day)
         dfCode = dfCode[::-1]
         for idx, price in dfCode.iterrows() :
-            print(idx)
-            
-    '''
-            if idx == len(dfCode) - 2 :
+            if idx == len(dfCode)-1:
+                tmpEndPrice = price['종가']
+                continue
+            if idx == 0 :
                 break
             startPrice = price['시가']
+            startPrice = round((startPrice / tmpEndPrice) - 1, 2)
             highPrice = price['고가']
+            highPrice = round((highPrice / tmpEndPrice) - 1, 2)
             lowPrice = price['저가']
+            lowPrice = round((lowPrice / tmpEndPrice) - 1, 2)
             endPrice = price['종가']
+            endPrice = round((endPrice / tmpEndPrice) - 1, 2)
+            
             dicResult['시가'] += startPrice
             dicResult['고가'] += highPrice
             dicResult['저가'] += lowPrice
             dicResult['종가'] += endPrice
             cnt += 1
 
-    dicResult['시가'] = round(dicResult['시가'] / cnt, )
-    dicResult['고가'] = dicResult['고가'] / cnt
-    dicResult['저가'] = dicResult['저가'] / cnt
-    dicResult['종가'] = dicResult['종가'] / cnt
+    dicResult['시가'] = round(dicResult['시가'] / cnt, 2)
+    dicResult['고가'] = round(dicResult['고가'] / cnt, 2)
+    dicResult['저가'] = round(dicResult['저가'] / cnt, 2)
+    dicResult['종가'] = round(dicResult['종가'] / cnt, 2)
 
-round(((totalTime / cntIdx)), 2)
-    '''
-    
+    return dicResult
