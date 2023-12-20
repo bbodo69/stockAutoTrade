@@ -868,13 +868,15 @@ for i in [20, 30, 40, 50, 60]:
 # for i in [10, 50, 100] :
 #     createGraphLineAndScatter(i)
 
-lstMA = [60, 100]
-lstbuyRate = [0.97, 0.98, 0.99]
-lstTakeBenefitRate = [1.015, 1.02, 1.025]
-lstStopLossRate = [0.95, 0.93, 0.91]
+# lstMA = [60, 100]
+# lstbuyRate = [0.97, 0.98, 0.99]
+# lstTakeBenefitRate = [1.015, 1.02, 1.025]
+# lstStopLossRate = [0.95, 0.93, 0.91]
 
-for MA in lstMA :
-    for buyRate in lstbuyRate:
-        for takeBenefitRate in lstTakeBenefitRate :
-            for stopLossRate in lstStopLossRate :
-                calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
+# for MA in lstMA :
+#     for buyRate in lstbuyRate:
+#         for takeBenefitRate in lstTakeBenefitRate :
+#             for stopLossRate in lstStopLossRate :
+#                 calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
+
+CodesAveragePriceInfo(['005930'], 100)
