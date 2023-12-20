@@ -880,7 +880,7 @@ for i in [20, 30, 40, 50, 60]:
 #                 calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
 
 lstCode = []
-for i in df :
+for i in df.iterrows() :
     lstCode.append(i['code'])
 
 print(dataProcessing.CodesAveragePriceInfo(lstCode, 300))
