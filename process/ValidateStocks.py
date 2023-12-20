@@ -881,6 +881,7 @@ for i in [20, 30, 40, 50, 60]:
 
 lstCode = []
 for i in df.iterrows() :
+    print(i)
     lstCode.append(i['code'])
 
 print(dataProcessing.CodesAveragePriceInfo(lstCode, 300))
