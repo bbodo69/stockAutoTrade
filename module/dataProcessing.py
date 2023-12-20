@@ -1445,5 +1445,46 @@ def isBetweenTwoMV(df, dfLongMA, dfShortMA, day) :
         return True
     else :
         return False
-  
 
+def CodesAveragePriceInfo(lstCode, day) :
+    '''
+    code 리스트, 데이터 날짜를 받아, 시가, 고가, 저가, 종가 가격 정보의 평균을 return
+    :param lstCode 코드 리스트
+    :param day 코드의 
+    :return dic{'시가', '고가', '저가', 종가'}
+    '''
+
+    startPrice = 0
+    highPrice = 0
+    lowPrice = 0
+    endPrice = 0
+    dicResult = {'시가':0, '고가':0, '저가':0, '종가':0}
+    cnt = 0
+    
+    for code in lstCode :
+        dfCode = GetStockPrice(code, day)
+        dfCode = dfCode[::-1]
+        for idx, price in dfCode.iterrows() :
+            print(idx)
+            
+    '''
+            if idx == len(dfCode) - 2 :
+                break
+            startPrice = price['시가']
+            highPrice = price['고가']
+            lowPrice = price['저가']
+            endPrice = price['종가']
+            dicResult['시가'] += startPrice
+            dicResult['고가'] += highPrice
+            dicResult['저가'] += lowPrice
+            dicResult['종가'] += endPrice
+            cnt += 1
+
+    dicResult['시가'] = round(dicResult['시가'] / cnt, )
+    dicResult['고가'] = dicResult['고가'] / cnt
+    dicResult['저가'] = dicResult['저가'] / cnt
+    dicResult['종가'] = dicResult['종가'] / cnt
+
+round(((totalTime / cntIdx)), 2)
+    '''
+    
