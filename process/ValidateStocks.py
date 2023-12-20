@@ -880,7 +880,7 @@ for i in [20, 30, 40, 50, 60]:
 #                 calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
 
 lstCode = []
-for i in df.iterrows() :
+for idx, i in df.iterrows() :
     print(i['code'])
     lstCode.append(str(i['code']))
 
