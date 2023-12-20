@@ -879,4 +879,8 @@ for i in [20, 30, 40, 50, 60]:
 #             for stopLossRate in lstStopLossRate :
 #                 calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
 
-dataProcessing.CodesAveragePriceInfo(['005930'], 100)
+lstCode = []
+for i in df :
+    lstCode.append(i['code'])
+
+print(dataProcessing.CodesAveragePriceInfo(lstCode, 300))
