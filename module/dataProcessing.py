@@ -1461,7 +1461,8 @@ def CodesAveragePriceInfo(lstCode, day) :
     dicResult = {'시가':0, '고가':0, '저가':0, '종가':0}
     cnt = 0
     
-    for code in lstCode :
+    for lstIdx, code in enumerate(lstCode) :
+        print("{0} // {1}".format(len(lstCode), lstIdx))
         dfCode = GetStockPrice(code, day)
         dfCode = dfCode[::-1]
         for idx, price in dfCode.iterrows() :
