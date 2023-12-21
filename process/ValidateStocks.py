@@ -883,3 +883,5 @@ lstCode = []
 for idx, i in df.iterrows() :
     lstCode.append(str(i['code']))
 print(dataProcessing.CodesAveragePriceInfo(lstCode, 300))
+# 라인 보내기
+Common.SendLine(dataProcessing.CodesAveragePriceInfo(lstCode, 300))
