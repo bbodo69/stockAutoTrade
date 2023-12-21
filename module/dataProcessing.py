@@ -1480,16 +1480,15 @@ def CodesAveragePriceInfo(lstCode, day) :
             endPrice = price['종가']
             endPrice = round((endPrice / tmpEndPrice) - 1, 3)
 
-            tmpEndPrice = price['종가']
             
             dicResult['시가'] += startPrice
             dicResult['고가'] += highPrice
             dicResult['저가'] += lowPrice
             dicResult['종가'] += endPrice
             cnt += 1
-
             print("{0} / {1} / {2} / {3}\n{4} / {5} / {6} / {7}\n{8} / {9} / {10}".format(startPrice, highPrice, lowPrice, endPrice, round(dicResult['시가'] / cnt, 3), round(dicResult['고가'] / cnt, 3), round(dicResult['저가'] / cnt, 3), round(dicResult['종가'] / cnt, 3), tmpEndPrice, code, price['날짜']))
-
+            tmpEndPrice = price['종가']
+            
     dicResult['시가'] = round(dicResult['시가'] / cnt, 3)
     dicResult['고가'] = round(dicResult['고가'] / cnt, 3)
     dicResult['저가'] = round(dicResult['저가'] / cnt, 3)
