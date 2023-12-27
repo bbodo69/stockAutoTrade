@@ -870,16 +870,19 @@ for i in [20, 30, 40, 50, 60]:
 # for i in [10, 50, 100] :
 #     createGraphLineAndScatter(i)
 
-lstMA = [10]
-lstbuyRate = [0.97]
-lstTakeBenefitRate = [1.03]
-lstStopLossRate = [0.95, 0.93, 0.91]
+# lstMA = [10]
+# lstbuyRate = [0.97]
+# lstTakeBenefitRate = [1.03]
+# lstStopLossRate = [0.95, 0.93, 0.91]
+#
+# for MA in lstMA :
+#     for buyRate in lstbuyRate:
+#         for takeBenefitRate in lstTakeBenefitRate :
+#             for stopLossRate in lstStopLossRate :
+#                 calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
 
-for MA in lstMA :
-    for buyRate in lstbuyRate:
-        for takeBenefitRate in lstTakeBenefitRate :
-            for stopLossRate in lstStopLossRate :
-                calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
+pd.set_option('display.max_rows', None)
+print(dataProcessing.DisparityRetDF("005930", 200, 10))
 
 # lstCode = []
 # for idx, i in df.iterrows() :

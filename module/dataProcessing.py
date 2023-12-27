@@ -498,7 +498,6 @@ def GetMovingAverageRetDF(df, day):
     dfResult = pd.DataFrame(columns=['날짜', '종가'])
 
     for idx, row in df.iterrows():
-
         if idx + day > len(df):
             break
 
@@ -1495,3 +1494,25 @@ def CodesAveragePriceInfo(lstCode, day) :
     dicResult['종가'] = round(dicResult['종가'] / cnt, 3)
 
     return dicResult
+
+def DisparityRetDF(code, count, MA) :
+    '''
+    이격도 계산하여 df 로 리턴
+    이격도 = 당일 기준의 종가/당일의 이동평균선 ×100
+    :param code 종목 코드
+    :return df{'날짜', '고가', '저가', 종가'}
+    '''
+    df = GetStockPrice(code, count)
+    df = standardizationStockSplit(df)
+    dfMA = GetMovingAverageRetDF(df, MA)
+    df = df.set_index('날짜')
+
+    dfResult = pd.DataFrame(columns=['날짜', '고가', '저가', '종가'])
+    for idx, row in dfMA.iterrows():
+        tmp = round(df.loc[row['날짜']]['종가'] / row['종가'] * 100, 3)
+        dfResult.loc[len(dfResult)] = [row['날짜'], 0, 0, tmp]
+        if row['날짜'] == '2023.06.09' :
+            print(row['종가'])
+            print(df.loc[row['날짜']]['종가'])
+
+    return dfResult
