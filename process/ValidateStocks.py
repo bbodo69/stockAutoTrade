@@ -31,7 +31,7 @@ totalCnt = 0
 totalBuyCnt = 0
 totalSellBenefitCnt = 0
 totalSellStopLoss = 0
-sampleCnt = 500
+sampleCnt = 50
 
 # 이동평균 증감 패턴에 따른 과거 데이터 매도 매수 파악
 
@@ -210,7 +210,7 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
             #     for j in i:
             #         lstDate.append(j)
 
-            dfDis = dataProcessing.DisparityRetDF(row['code'], 300, 20)
+            dfDis = dataProcessing.DisparityRetDF(row['code'], 300, MA)
 
             self.tmp = -1
             for idx, row in dfDis.iterrows():
@@ -884,19 +884,19 @@ for i in [20, 30, 40, 50, 60]:
 # for i in [10, 50, 100] :
 #     createGraphLineAndScatter(i)
 
-# lstMA = [10]
-# lstbuyRate = [0.97]
-# lstTakeBenefitRate = [1.03]
-# lstStopLossRate = [0.95, 0.93, 0.91]
-#
-# for MA in lstMA :
-#     for buyRate in lstbuyRate:
-#         for takeBenefitRate in lstTakeBenefitRate :
-#             for stopLossRate in lstStopLossRate :
-#                 calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
+lstMA = [20]
+lstbuyRate = [0.97, 0.98, 0.99]
+lstTakeBenefitRate = [1.015, 1.02, 1.03]
+lstStopLossRate = [0.95, 0.93, 0.91]
 
-pd.set_option('display.max_rows', None)
-print(dataProcessing.DisparityRetDF("005930", 200, 20))
+for MA in lstMA :
+    for buyRate in lstbuyRate:
+        for takeBenefitRate in lstTakeBenefitRate :
+            for stopLossRate in lstStopLossRate :
+                calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
+
+# pd.set_option('display.max_rows', None)
+# print(dataProcessing.DisparityRetDF("005930", 200, 20))
 
 # lstCode = []
 # for idx, i in df.iterrows() :
