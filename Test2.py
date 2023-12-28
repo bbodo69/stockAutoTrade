@@ -3,7 +3,7 @@ class test() :
         ####### 계좌 관련 변수
         self.deposit = 0
         self.out_deposit = 0
-        self.account_num = account_num
+        self.account_num = 0
         self.use_money = 0
         self.use_money_percent = 0
         self.account_list = []
