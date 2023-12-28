@@ -179,7 +179,7 @@ class MyWindow(QMainWindow):
                 #                print("sPrevNext : %s" % sPrevNext)
                 #                print("계좌에 가지고 있는 종목은 %s " % rows)
                 if sPrevNext == "2":
-                    print(1111)
+                    print(values.account_num)
                     self.detail_account_mystock_loop.exit()
                     self.detail_account_mystock(values.account_num, sPrevNext="2")
                 else:
