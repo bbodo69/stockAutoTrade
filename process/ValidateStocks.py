@@ -213,6 +213,7 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
             dfDis = dataProcessing.DisparityRetDF(row['code'], 300, MA)
 
             tmp = -1
+            print(dfDis)
             for idx2, row2 in dfDis.iterrows():
                 if row2['종가'] > 97:
                     tmp = int(row2['종가'])
