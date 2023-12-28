@@ -13,8 +13,24 @@ import module.sender_collection as sender_collection
 import json
 import os
 
+class Values():
+    def __init__(self): # 기본값 설정
+        ####### 계좌 관련 변수
+        self.deposit = 0
+        self.out_deposit = 0
+        self.account_num = account_num
+        self.use_money = 0
+        self.use_money_percent = 0
+        self.account_list = []
+        self.account_stock_dict = {}    # 보유종목
+    def in(var) :
+        pass
+        
+    def out(var) :
+        pass
 
-class MyWindow(QMainWindow, account_num):
+
+class MyWindow(QMainWindow):
     # QMainWindow 를 상속
     delay = 3.6
 
@@ -240,8 +256,6 @@ class MyWindow(QMainWindow, account_num):
 
 if __name__ == "__main__":
     try:
-
-
         # 구글 드라이브 에서 마스터 파일 다운로드
         gdd.GoogleDriveDownload('1efNPLvql1k2J4hrqO7EjJMDQiALhBiFJ', 'Master.xlsx')
 
@@ -269,7 +283,7 @@ if __name__ == "__main__":
         BizError = ""
 
         app = QApplication(sys.argv)
-        myWindow = MyWindow(account_num)
+        myWindow = MyWindow()
 
         myWindow.show()
         # 키움 로그인
