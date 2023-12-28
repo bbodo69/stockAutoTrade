@@ -882,7 +882,7 @@ for i in [20, 30, 40, 50, 60]:
 #                 calculResult(MA, buyRate, takeBenefitRate, stopLossRate)
 
 pd.set_option('display.max_rows', None)
-print(dataProcessing.DisparityRetDF("005930", 200, 10))
+print(dataProcessing.DisparityRetDF("005930", 200, 20))
 
 # lstCode = []
 # for idx, i in df.iterrows() :
