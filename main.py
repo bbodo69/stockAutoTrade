@@ -14,7 +14,7 @@ import json
 import os
 
 
-class MyWindow(QMainWindow):
+class MyWindow(QMainWindow, account_num):
     # QMainWindow 를 상속
     delay = 3.6
 
@@ -23,7 +23,7 @@ class MyWindow(QMainWindow):
         ####### 계좌 관련 변수
         self.deposit = 0
         self.out_deposit = 0
-        self.account_num = None
+        self.account_num = account_num
         self.use_money = 0
         self.use_money_percent = 0
         self.account_list = []
@@ -178,7 +178,7 @@ class MyWindow(QMainWindow):
                     print(1111)
                     self.detail_account_mystock_loop.exit()
                     self.detail_account_mystock(sPrevNext="2")
-                else:
+                else:detail_account_mystock
                     print(2222)
                     self.detail_account_mystock_loop.exit()
 
@@ -240,8 +240,7 @@ class MyWindow(QMainWindow):
 
 if __name__ == "__main__":
     try:
-        app = QApplication(sys.argv)
-        myWindow = MyWindow()
+
 
         # 구글 드라이브 에서 마스터 파일 다운로드
         gdd.GoogleDriveDownload('1efNPLvql1k2J4hrqO7EjJMDQiALhBiFJ', 'Master.xlsx')
@@ -268,6 +267,9 @@ if __name__ == "__main__":
 
         df_targetCodesInfo = pd.DataFrame([])
         BizError = ""
+
+        app = QApplication(sys.argv)
+        myWindow = MyWindow(account_num)
 
         myWindow.show()
         # 키움 로그인
