@@ -218,15 +218,14 @@ class MyWindow(QMainWindow):
         self.detail_account_mystock_loop = QEventLoop()
         print("detail_account_mystock 시작")
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "계좌번호", account)
-        print(1)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호", "0000")
-        print(2)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "구분")
-        print(3)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "조회구분", "1")
         self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", sPrevNext, "0111")
         # CommRqData
+        print(1)
         self.detail_account_mystock_loop.exec()
+        print(2)
         print("detail_account_mystock 종료")
 
     def get_deposit(self, account, sPrevNext = "0"):
