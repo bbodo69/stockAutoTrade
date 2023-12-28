@@ -9,8 +9,6 @@ class test() :
         self.account_list = []
         self.account_stock_dict = {}    # 보유종목
 
-
-
 class out() :
      print(1)
      def inTest(self) :
