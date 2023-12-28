@@ -12,7 +12,9 @@ class test() :
 
 
 class out() :
+     print(1)
      def inTest() :
+          print(2)
           t.deposit = 20
           
 
