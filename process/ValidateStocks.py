@@ -187,29 +187,43 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
         totalFilePath = os.path.join(imgFolderPath, 'total_' + str(MA) + '_' + str(buyRate) + '_' + str(takeBenefitRate) + '_' + str(stopLossRate) + '.xlsx')
 
         for idx, row in dfSample.iterrows():
+            lstDate = []
+            #_______________________아래로 
             # 초기화
             dfCode = dataProcessing.GetStockPrice(row['code'], 300)
-
             # 배당락, 병합, 분할 표준화
             dfCode = dataProcessing.standardizationStockSplit(dfCode)
             startTime = time.time()
-            lstDate = []
+            # # 이동평균선 구하기
+            # dfMAtarget = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
 
-            # 이동평균선 구하기
-            dfMAtarget = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
+            # lstScatterDic = []
 
-            lstScatterDic = []
+            # # dicGetDateFollowingMAPattern = dataProcessing.CrossDateStockPriceAndMV(dfCode, dfMAtarget, 'd')
+            # dicGetDateFollowingMAPattern = dataProcessing.dicMAUpCrossPoint(dfCode, MA, 100)
 
-            # dicGetDateFollowingMAPattern = dataProcessing.CrossDateStockPriceAndMV(dfCode, dfMAtarget, 'd')
-            dicGetDateFollowingMAPattern = dataProcessing.dicMAUpCrossPoint(dfCode, MA, 100)
+            # for i in dicGetDateFollowingMAPattern:
+            #     dicGetDateFollowingMAPattern[i]['color'] = 'red'
+            # lstScatterDic.append(dicGetDateFollowingMAPattern)
 
-            for i in dicGetDateFollowingMAPattern:
-                dicGetDateFollowingMAPattern[i]['color'] = 'red'
-            lstScatterDic.append(dicGetDateFollowingMAPattern)
+            # for i in lstScatterDic:
+            #     for j in i:
+            #         lstDate.append(j)
 
-            for i in lstScatterDic:
-                for j in i:
-                    lstDate.append(j)
+            dfDis = dataProcessing.DisparityRetDF(row['code'], 300, 20)
+
+            self.tmp = -1
+            for idx, row in dfDis.iterrows():
+                if row['종가'] < 95:
+                    self.tmp = Cint(row['종가'])
+                    continue
+                if self.tmp != -1 and Cint(row['종가']) > 95 :
+                    lstDate.append(row['날짜'])
+                    self.tmp = -1
+                    continue
+                self.tmp = -1
+
+            #______________________ lstDate 에 날짜 형식으로 넣어주기
 
             dicTmpResult = dataProcessing.calculTrade(df=dfCode, lstDate=lstDate, buyRate=buyRate,
                                                       takeBenefitRate=takeBenefitRate, stopLossRate=stopLossRate,
