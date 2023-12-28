@@ -1511,8 +1511,6 @@ def DisparityRetDF(code, count, MA) :
     for idx, row in dfMA.iterrows():
         tmp = round(df.loc[row['날짜']]['종가'] / row['종가'] * 100, 3)
         dfResult.loc[len(dfResult)] = [row['날짜'], 0, 0, tmp]
-        if row['날짜'] == '2023.06.09' :
-            print(row['종가'])
-            print(df.loc[row['날짜']]['종가'])
 
     return dfResult
+    
