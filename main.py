@@ -178,7 +178,7 @@ class MyWindow(QMainWindow, account_num):
                     print(1111)
                     self.detail_account_mystock_loop.exit()
                     self.detail_account_mystock(account_num, sPrevNext="2")
-                else:detail_account_mystock
+                else:
                     print(2222)
                     self.detail_account_mystock_loop.exit()
 
