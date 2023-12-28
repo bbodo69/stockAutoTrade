@@ -178,7 +178,7 @@ class MyWindow(QMainWindow):
                     print(1111)
                     self.detail_account_mystock(sPrevNext="2")
                 else:
-                    print(1111)
+                    print(2222)
                     self.detail_account_mystock_loop.exit()
 
         if rqname == "opt10086_pre_req":
