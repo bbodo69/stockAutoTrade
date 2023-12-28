@@ -219,6 +219,7 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
                     continue
                 if tmp != -1 and int(row2['종가']) < 97 :
                     lstDate.append(row2['날짜'])
+                    print(row2['날짜'])
                     tmp = -1
                     continue
                 tmp = -1
