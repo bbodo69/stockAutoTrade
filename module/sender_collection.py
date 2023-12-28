@@ -1,7 +1,7 @@
 import requests
 import warnings
 from string import Template
-from EmailSender import *
+# from EmailSender import *
 
 ######## FutureWarring 방지 ########
 warnings.simplefilter(action='ignore', category=FutureWarning)  # FutureWarning 제거

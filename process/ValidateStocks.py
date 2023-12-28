@@ -889,7 +889,7 @@ for i in [20, 30, 40, 50, 60]:
 #     createGraphLineAndScatter(i)
 
 lstMA = [20]
-lstbuyRate = [0.97, 0.98, 0.99]
+lstbuyRate = [0.99]
 lstTakeBenefitRate = [1.015, 1.02, 1.03]
 lstStopLossRate = [0.95, 0.93, 0.91]
 
