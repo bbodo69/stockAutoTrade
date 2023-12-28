@@ -215,9 +215,9 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
             tmp = -1
             for idx, row in dfDis.iterrows():
                 if row['종가'] < 95:
-                    tmp = Cint(row['종가'])
+                    tmp = int(row['종가'])
                     continue
-                if tmp != -1 and Cint(row['종가']) > 95 :
+                if tmp != -1 and int(row['종가']) > 95 :
                     lstDate.append(row['날짜'])
                     tmp = -1
                     continue
