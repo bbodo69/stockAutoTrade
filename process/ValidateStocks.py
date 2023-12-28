@@ -189,13 +189,13 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
         for idx, row in dfSample.iterrows():
             lstDate = []
             #_______________________아래로 
-            # 초기화
-            dfCode = dataProcessing.GetStockPrice(row['code'], 300)
-            # 배당락, 병합, 분할 표준화
-            dfCode = dataProcessing.standardizationStockSplit(dfCode)
-            startTime = time.time()
-            # # 이동평균선 구하기
-            # dfMAtarget = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
+            # # 초기화
+            # dfCode = dataProcessing.GetStockPrice(row['code'], 300)
+            # # 배당락, 병합, 분할 표준화
+            # dfCode = dataProcessing.standardizationStockSplit(dfCode)
+            # startTime = time.time()
+            # # # 이동평균선 구하기
+            # # dfMAtarget = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
 
             # lstScatterDic = []
 
@@ -213,12 +213,12 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
             dfDis = dataProcessing.DisparityRetDF(row['code'], 300, MA)
 
             tmp = -1
-            for idx, row in dfDis.iterrows():
-                if row['종가'] < 95:
-                    tmp = int(row['종가'])
+            for idx2, row2 in dfDis.iterrows():
+                if row2['종가'] < 95:
+                    tmp = int(row2['종가'])
                     continue
-                if tmp != -1 and int(row['종가']) > 95 :
-                    lstDate.append(row['날짜'])
+                if tmp != -1 and int(row2['종가']) > 95 :
+                    lstDate.append(row2['날짜'])
                     tmp = -1
                     continue
                 tmp = -1
