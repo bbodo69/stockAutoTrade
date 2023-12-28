@@ -190,10 +190,10 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
             lstDate = []
             #_______________________아래로 
             # # 초기화
-            # dfCode = dataProcessing.GetStockPrice(row['code'], 300)
+            dfCode = dataProcessing.GetStockPrice(row['code'], 300)
             # # 배당락, 병합, 분할 표준화
-            # dfCode = dataProcessing.standardizationStockSplit(dfCode)
-            # startTime = time.time()
+            dfCode = dataProcessing.standardizationStockSplit(dfCode)
+            startTime = time.time()
             # # # 이동평균선 구하기
             # # dfMAtarget = dataProcessing.GetMovingAverageRetDF(dfCode, MA)
 
