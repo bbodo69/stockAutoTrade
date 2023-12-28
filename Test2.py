@@ -9,7 +9,18 @@ class test() :
         self.account_list = []
         self.account_stock_dict = {}    # 보유종목
 
+
+
+class out() :
+     def inTest() :
+          t.deposit = 20
+          
+
 t = test()
 t.deposit = 10
+print(t.deposit)
+
+o = out()
+o.inTest()
 
 print(t.deposit)
