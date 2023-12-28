@@ -218,8 +218,11 @@ class MyWindow(QMainWindow):
         self.detail_account_mystock_loop = QEventLoop()
         print("detail_account_mystock 시작")
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "계좌번호", account)
+        print(1)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호", "0000")
+        print(2)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호입력매체구분", "구분")
+        print(3)
         self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "조회구분", "1")
         self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", sPrevNext, "0111")
         # CommRqData
@@ -246,7 +249,6 @@ if __name__ == "__main__":
     try:
         # 변수 클래스 저장
         values = Values()
-        
         
         # 구글 드라이브 에서 마스터 파일 다운로드
         gdd.GoogleDriveDownload('1efNPLvql1k2J4hrqO7EjJMDQiALhBiFJ', 'Master.xlsx')
