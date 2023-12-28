@@ -217,7 +217,7 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
                 if row['종가'] < 95:
                     tmp = Cint(row['종가'])
                     continue
-                if self.tmp != -1 and Cint(row['종가']) > 95 :
+                if tmp != -1 and Cint(row['종가']) > 95 :
                     lstDate.append(row['날짜'])
                     tmp = -1
                     continue
