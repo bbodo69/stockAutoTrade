@@ -212,16 +212,16 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
 
             dfDis = dataProcessing.DisparityRetDF(row['code'], 300, MA)
 
-            self.tmp = -1
+            tmp = -1
             for idx, row in dfDis.iterrows():
                 if row['종가'] < 95:
-                    self.tmp = Cint(row['종가'])
+                    tmp = Cint(row['종가'])
                     continue
                 if self.tmp != -1 and Cint(row['종가']) > 95 :
                     lstDate.append(row['날짜'])
-                    self.tmp = -1
+                    tmp = -1
                     continue
-                self.tmp = -1
+                tmp = -1
 
             #______________________ lstDate 에 날짜 형식으로 넣어주기
 
