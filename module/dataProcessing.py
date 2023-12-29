@@ -53,7 +53,6 @@ def dicHighestPrice(df, day):
 
     return dicResult
 
-
 def dicLowestPrice(df, day):
     dicResult = {}
 
@@ -139,7 +138,6 @@ def RemainNDayPriceHighLowPrice(df, day, gubun):
                     result.append(df.iloc[i]['날짜'] + "^" + str(iPrice) + "^" + str(i))
 
     return result
-
 
 def UpPricePre5DayPattern(code):
     df = GetStockPrice(code, 250)
@@ -277,7 +275,6 @@ def ExpectNextHighPrice(code, df):
         return str(code) + "\n" + str(e)
 
     return sReturn
-
 
 def GetStockPrice(code, count):
     # 한국 지수별 가격정보 가져오기
