@@ -31,7 +31,7 @@ totalCnt = 0
 totalBuyCnt = 0
 totalSellBenefitCnt = 0
 totalSellStopLoss = 0
-sampleCnt = 50
+sampleCnt = 500
 
 # 이동평균 증감 패턴에 따른 과거 데이터 매도 매수 파악
 
