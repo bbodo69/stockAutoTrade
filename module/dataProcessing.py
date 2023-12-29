@@ -1513,4 +1513,35 @@ def DisparityRetDF(code, count, MA) :
         dfResult.loc[len(dfResult)] = [row['날짜'], 0, 0, tmp]
 
     return dfResult
+
+def isDisparity(code, MA, percent, gubun=None) :
     
+    df = GetStockPrice(code, MA+10)
+    df = df.set_index('날짜')
+    df = standardizationStockSplit(df)
+    dfMA = GetMovingAverageRetDF(df, MA)
+    disparityToday = round(df.loc[0]['종가'] / dfMA.loc[0]['종가'] * 100, 3)
+    disparityYesterday = round(df.loc[1]['종가'] / dfMA.loc[1]['종가'] * 100, 3)
+
+    if gubun == None or gubun.upper() == 'U' or gubun.upper() == 'UP' :
+        if disparityToday > percent and disparityYesterday < percent :
+            return True
+        else :
+            return False
+    else :
+        if disparityToday < percent and disparityYesterday > percent :
+            return True
+        else :
+            return False
+    
+
+
+
+
+
+
+
+
+
+
+
