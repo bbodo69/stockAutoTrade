@@ -36,7 +36,7 @@ def testMain() :
       continue
 
     #____________조건 넣기
-    if isDisparity(row['code'], 20, 0.97) :
+    if dataProcessing.isDisparity(row['code'], 20, 0.97) :
       list_row = [row['code']]
       dfResult.loc[len(dfResult)] = list_row
 
