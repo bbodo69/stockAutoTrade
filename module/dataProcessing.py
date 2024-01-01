@@ -705,6 +705,22 @@ def standardizationStockSplit(df):
 
     return df
 
+def gabCheck(df):
+    global gab
+
+    gab = 1
+    totalGab = 1
+
+    for idx, row in df.iterrows():
+        if idx + 2 > len(df):
+            break
+        gabCheck = True
+
+        if df.loc[idx]['종가'] + df.loc[idx]['전일비'] == df.loc[idx + 1]['종가'] or df.loc[idx]['종가'] - df.loc[idx]['전일비'] == \
+                df.loc[idx + 1]['종가']:
+            continue
+        return False
+    return True
 '''
         # 병합
         if df.loc[idx]['종가'] > df.loc[idx+1]['종가'] * 1.3:
@@ -1514,14 +1530,18 @@ def DisparityRetDF(code, count, MA) :
 def isDisparity(code, MA, percent, gubun=None) :
     
     df = GetStockPrice(code, MA+10)
-    df = df.set_index('날짜')
+    if not gabCheck(df) :
+        return False
     df = standardizationStockSplit(df)
     dfMA = GetMovingAverageRetDF(df, MA)
-    disparityToday = round(df.loc[0]['종가'] / dfMA.loc[0]['종가'] * 100, 3)
-    disparityYesterday = round(df.loc[1]['종가'] / dfMA.loc[1]['종가'] * 100, 3)
+    disparityToday = round(df.loc[0]['종가'] / dfMA.loc[0]['종가'], 3)
+    disparityYesterday = round(df.loc[1]['종가'] / dfMA.loc[1]['종가'], 3)
 
     if gubun == None or gubun.upper() == 'U' or gubun.upper() == 'UP' :
         if disparityToday > percent and disparityYesterday < percent :
+            print(code)
+            print("종가 : {0} // MA : {1}, 1종가 : {2} // 1MA : {3}".format(df.loc[0]['종가'], dfMA.loc[0]['종가'], df.loc[1]['종가'], dfMA.loc[1]['종가']))
+            print("{3}, {0} > {2} and {1} < {2}".format(disparityToday, disparityYesterday, percent, disparityToday > percent and disparityYesterday < percent))
             return True
         else :
             return False

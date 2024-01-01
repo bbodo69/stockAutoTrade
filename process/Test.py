@@ -29,7 +29,8 @@ def testMain() :
   # 결과 lst 생성
   lstResult = []
   dfResult = pd.DataFrame(columns=["code"])
-  
+  cnt = 0
+
   for idx, row in df.iterrows() :
     # 종목 시세 데이터 가져오기
     if "K" in row['code'] or "L" in row['code'] :
@@ -39,6 +40,9 @@ def testMain() :
     if dataProcessing.isDisparity(row['code'], 20, 0.97) :
       list_row = [row['code']]
       dfResult.loc[len(dfResult)] = list_row
+      cnt += 1
+
+    print("{0} // {1} // {2}".format(len(df), idx, cnt))
 
     #____________위까지 조건 넣기
     # dfCode = dataProcessing.GetStockPrice(row['code'], 110)
