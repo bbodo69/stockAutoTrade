@@ -533,6 +533,8 @@ if __name__ == "__main__":
     print("자동매매 종료, 일일 리포트 생성 시작")
     DailyCode.DailyCode("dailyConfirmCode.json")
 
+    os.system("shutdown -s -t 60")
+
     # try:
     #     app = QApplication(sys.argv)
     #     myWindow = MyWindow()
