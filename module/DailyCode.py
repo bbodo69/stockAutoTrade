@@ -41,4 +41,4 @@ def DailyCode(filePath) :
   dfResult.to_json(path_or_buf=filePath, orient="records")
   print("전체 : {0}, 대상 : {1}".format(len(df), len(lstResult)))
 
-DailyCode("dailyConfirmCode.json")
+# DailyCode("dailyConfirmCode.json")
