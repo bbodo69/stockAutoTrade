@@ -371,8 +371,12 @@ class MyWindow(QMainWindow):
     def cancel_screen_number(self, screen_no):
         self.kiwoom.dynamicCall("DisconnectRealData(QString)", screen_no)
 
-
 if __name__ == "__main__":
+
+    if datetime.datetime.today().weekday() == 5 or datetime.datetime.today().weekday() == 6 :
+        os.system("shutdown -s -f -t 600")
+        sys.exit()
+
     # read Config data
     config_filePath = "config.json"
     dailyConfirmCode_filePath = "dailyConfirmCode.json"
@@ -416,7 +420,7 @@ if __name__ == "__main__":
     todayBuyCode = []
 
     while (True):
-        if datetime.datetime.now().hour >= 16:
+        if datetime.datetime.now().hour >= 16 or datetime.datetime.now().hour < 8:
             print(datetime.datetime.now().hour)
             break
     
@@ -535,7 +539,8 @@ if __name__ == "__main__":
     messageInfo = '자동 매매 완료, 10분 후 자동종료'
     Common.SendLine(messageInfo)
 
-    os.system("shutdown -s -t 600")
+    os.system("shutdown -s -f -t 600")
+    sys.exit()
 
     # try:
     #     app = QApplication(sys.argv)
