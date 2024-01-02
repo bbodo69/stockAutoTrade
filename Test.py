@@ -532,8 +532,10 @@ if __name__ == "__main__":
         
     print("자동매매 종료, 일일 리포트 생성 시작")
     DailyCode.DailyCode("dailyConfirmCode.json")
+    messageInfo = '자동 매매 완료, 10분 후 자동종료'
+    Common.SendLine(messageInfo)
 
-    os.system("shutdown -s -t 60")
+    os.system("shutdown -s -t 600")
 
     # try:
     #     app = QApplication(sys.argv)
