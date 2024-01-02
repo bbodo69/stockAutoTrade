@@ -186,11 +186,11 @@ class MyWindow(QMainWindow):
                     self.tr_event_loop.exit()
                 
     
-            # 예수금
+            # 예수금, 주문가능금액
             if rqname == "opw00001_req":
                 print("rqName = opw00001_req")
                 self.deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
-                                                       "예수금")
+                                                       "주문가능금액")
                 self.deposit = int(self.deposit)
                 deposit = self.deposit
                 self.out_deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
@@ -476,7 +476,7 @@ if __name__ == "__main__":
             for row in codes:
                 try:
                     codes = random.sample(codes, 30) # 코스피 중 n개 샘플 먼저 진행
-                    if out_deposit < amount:
+                    if deposit < amount:
                         break
                     code = row['code']
                     # dfMinute = dataProcessing.GetStockPriceMinute(code)
