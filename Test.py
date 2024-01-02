@@ -459,7 +459,7 @@ if __name__ == "__main__":
                     time.sleep(0.3)
                     # 라인 보내기
                     messageInfo = '\n총 종목코드 : {0}\n총 수량 : {1}\n총 매도가 : {2}'.format(code, possibleQuantity, sellPrice)
-                    Common.SendLine(messageInfo)
+                    # Common.SendLine(messageInfo)
                     
                 except Exception as e:
                     # BizError += "\n매도 : " + str(e)
@@ -517,7 +517,7 @@ if __name__ == "__main__":
                     # 라인 보내기
                     messageInfo = '\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, out_deposit)
                     
-                    Common.SendLine(messageInfo)
+                    # Common.SendLine(messageInfo)
                     todayBuyCode.append(code) # 금일 매수 종목 리스트에 삽입
                     
                 except Exception as e:

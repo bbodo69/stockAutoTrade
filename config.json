@@ -4,8 +4,8 @@
   "masterFilePath": "dailyConfirmCode.json",
   "buy_flag": true,
   "buy_rate": 0.99,
-  "sell_rate": 1.015,
-  "stop_loss": 0.95,
+  "sell_rate": 1.03,
+  "stop_loss": 0.93,
   "order_price": 500000,
   "key_sample": "value_sample"
 }
