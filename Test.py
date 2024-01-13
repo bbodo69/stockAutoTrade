@@ -372,175 +372,182 @@ class MyWindow(QMainWindow):
         self.kiwoom.dynamicCall("DisconnectRealData(QString)", screen_no)
 
 if __name__ == "__main__":
+    try :
+        if datetime.datetime.today().weekday() == 5 or datetime.datetime.today().weekday() == 6 :
+            os.system("shutdown -s -f -t 600")
+            sys.exit()
 
-    if datetime.datetime.today().weekday() == 5 or datetime.datetime.today().weekday() == 6 :
+        # read Config data
+        config_filePath = "config.json"
+        dailyConfirmCode_filePath = "dailyConfirmCode.json"
+        isConfigFile = os.path.isfile(config_filePath)
+
+        if isConfigFile:
+            with open(config_filePath, 'rt', encoding='UTF8') as json_file:
+                config = json.load(json_file)
+        else:
+            print("config 파일 미존재")
+
+        # read confirmCodeFile
+        with open(dailyConfirmCode_filePath, 'rt', encoding='UTF8') as json_file:
+            codes = json.load(json_file)
+
+        # for row in codes :
+        #     print(row['code'])
+
+        # save basic values
+        amount = config["order_price"]  # 주문 총 금액
+        account_num = config["account_num"]  # 계좌번호
+        buyFlag = config["buy_flag"]
+        buyRate = float(config["buy_rate"])
+        sellRate = float(config["sell_rate"])
+        stopLoss = float(config["stop_loss"])
+        pw = "0000"
+
+        # start kiwoom API
+        app = QApplication(sys.argv)
+        myWindow = MyWindow()
+        myWindow.show()
+
+        # 키움 로그인
+        myWindow.kiwoom_login()
+        # print('계좌정보 : {0}'.format(myWindow.get_account_info())) # 보유 계좌 정보 불러오기
+        myWindow.get_deposit(account_num, pw) # 예수금, 출금가능금액 가져오기, ret = deposit(예수금), out_deposit(출금가능금액)
+        # print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
+        # myWindow.detail_account_mystock(account_num, 0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
+
+        # 사용 변수
+        todayBuyCode = []
+
+        while (True):
+            if datetime.datetime.now().hour >= 16 or datetime.datetime.now().hour < 8:
+                print(datetime.datetime.now().hour)
+                break
+
+            # 매도 진행, 계좌의 보유종목 조회
+            myWindow.detail_account_mystock(account_num,
+                                            0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
+            print("보유종목조회 완료")
+            # 미체결 조회
+            myWindow.not_signed_account(account_num,
+                                            0)
+
+            if stocksCnt > 50:
+                messageInfo = '보유종목 갯수 : {0}'.format(stocksCnt)
+                Common.SendLine(messageInfo)
+                buyFlag = False
+
+            # 매도 ::: 보유종목 있을시, 매도진행
+            if len(account_stock_dict) > 0:
+                for i in account_stock_dict:
+                    try:
+                        code = i
+                        buy_price = int(account_stock_dict[i]['매입가'])
+                        stockAmount = int(account_stock_dict[i]['보유수량'])
+                        possibleQuantity = int(account_stock_dict[i]['매매가능수량'])
+                        dfMinute = dataProcessing.GetStockPriceMinute(code)
+                        print('매도가격 : {0}, 현재가격 : {1}'.format(buy_price * sellRate, dfMinute.loc[0]['체결가']))
+
+                        if not (buy_price * sellRate < dfMinute.loc[0]['체결가'] or buy_price * stopLoss > dfMinute.loc[0]['체결가']):  # 체결가가 매입금액의 n% 이상일 때 진행, 손절 가격 도달시 매도 진행
+                            continue
+                        # if useTradeAlgorithm:  # 거래에 사용되는 알고리즘 있으면 여기서 지정
+                        #     sellPrice = dataProcessing.CheckReturnPosition(dfMinute, "up", 3)  # 가격 반전 확인
+                        # else:
+                        #    sellPrice = int(dfMinute.loc[0]['체결가'])
+                        sellPrice = int(dfMinute.loc[0]['체결가'])
+                        if sellPrice is None:  # 가격 반전이 나오지 않았을 경우, 다음 code 확인
+                            continue
+                        if possibleQuantity < 1:  # 매매가능수량이 없을 때, 다음 code 확인
+                            continue
+                        myWindow.sell_Stock(code, possibleQuantity, sellPrice, account_num)
+                        time.sleep(0.3)
+                        # 라인 보내기
+                        messageInfo = '\n총 종목코드 : {0}\n총 수량 : {1}\n총 매도가 : {2}'.format(code, possibleQuantity, sellPrice)
+                        # Common.SendLine(messageInfo)
+
+                    except Exception as e:
+                        # BizError += "\n매도 : " + str(e)
+                        # 라인 보내기
+                        messageInfo = '매도 Err : {0}'.format(e)
+                        Common.SendLine(messageInfo)
+
+            # 예수금 존재할 때만, 매수 시도
+            myWindow.get_deposit(account_num, pw)
+
+            # 매수
+
+            if buyFlag:
+                for row in codes:
+                    try:
+                        if len(codes) > 30 :
+                            codes = random.sample(codes, 30)  # 코스피 중 n개 샘플 먼저 진행
+                        else :
+                            pass
+
+                        if deposit < amount:
+                            break
+                        code = row['code']
+                        # dfMinute = dataProcessing.GetStockPriceMinute(code)
+                        dfStock = dataProcessing.GetStockPrice(code, 20)
+                        print('매수가격 : {0}, 현재가격 : {1}'.format(int(int(dfStock.loc[1]['종가']) * buyRate),
+                                                              dfStock.loc[0]['종가']))
+
+                        if int(dfStock.loc[0]['종가']) > int(int(dfStock.loc[1]['종가']) * buyRate):
+                            continue
+
+                        # if useTradeAlgorithm:  # 거래에 사용되는 알고리즘 있으면 여기서 구분
+                        #     buyPrice = dataProcessing.CheckReturnPosition(dfMinute, "down", 3)  # 가격 반전 확인
+                        # else:
+                        #     buyPrice = int(dfStock.loc[0]['종가'])
+                        buyPrice = int(dfStock.loc[1]['종가']) * buyRate
+
+                        quantity = amount // buyPrice
+
+                        if buyPrice is None:
+                            continue
+
+                        if code in account_stock_dict or code in not_signed_account_dict:  # 보유 종목, 미체결 종목, 금일 매수 종목에 대해서 매수 진행 X
+                            continue
+
+                        # if code in todayBuyCode : # 당일 재매수 X
+                        #     continue
+
+                        tmpDeposit = deposit
+                        myWindow.buy_Stock(code, quantity, buyPrice, account_num)
+                        time.sleep(0.3)
+                        # 예수금 존재할 때만, 매수 시도
+                        myWindow.get_deposit(account_num, pw)
+                        if tmpDeposit == deposit:
+                            # 라인 보내기
+                            messageInfo = '\n실패\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, deposit)
+                            Common.SendLine(messageInfo)
+                            continue
+                        # 라인 보내기
+                        messageInfo = '\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, deposit)
+
+                        # Common.SendLine(messageInfo)
+                        todayBuyCode.append(code) # 금일 매수 종목 리스트에 삽입
+
+                    except Exception as e:
+                        print('매수 Err : {0}'.format(e))
+                        # BizError += "\n매수 : " + str(e)
+
+                        # 라인 보내기
+                        messageInfo = '매수 Err : {0}'.format(e)
+                        Common.SendLine(messageInfo)
+
+            time.sleep(20)
+
+        print("자동매매 종료, 일일 리포트 생성 시작")
+        DailyCode.DailyCode("dailyConfirmCode.json")
+        messageInfo = '자동 매매 완료, 10분 후 자동종료'
+        Common.SendLine(messageInfo)
+
         os.system("shutdown -s -f -t 600")
         sys.exit()
-
-    # read Config data
-    config_filePath = "config.json"
-    dailyConfirmCode_filePath = "dailyConfirmCode.json"
-    isConfigFile = os.path.isfile(config_filePath)
-
-    if isConfigFile:
-        with open(config_filePath, 'rt', encoding='UTF8') as json_file:
-            config = json.load(json_file)
-    else:
-        print("config 파일 미존재")
-
-    # read confirmCodeFile
-    with open(dailyConfirmCode_filePath, 'rt', encoding='UTF8') as json_file:
-        codes = json.load(json_file)
-
-    # for row in codes :
-    #     print(row['code'])
-
-    # save basic values
-    amount = config["order_price"]  # 주문 총 금액
-    account_num = config["account_num"]  # 계좌번호
-    buyFlag = config["buy_flag"]
-    buyRate = float(config["buy_rate"])
-    sellRate = float(config["sell_rate"])
-    stopLoss = float(config["stop_loss"])
-    pw = "0000"
-
-    # start kiwoom API
-    app = QApplication(sys.argv)
-    myWindow = MyWindow()
-    myWindow.show()
-
-    # 키움 로그인
-    myWindow.kiwoom_login()
-    # print('계좌정보 : {0}'.format(myWindow.get_account_info())) # 보유 계좌 정보 불러오기
-    myWindow.get_deposit(account_num, pw) # 예수금, 출금가능금액 가져오기, ret = deposit(예수금), out_deposit(출금가능금액)
-    # print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
-    # myWindow.detail_account_mystock(account_num, 0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
-
-    # 사용 변수
-    todayBuyCode = []
-
-    while (True):
-        if datetime.datetime.now().hour >= 16 or datetime.datetime.now().hour < 8:
-            print(datetime.datetime.now().hour)
-            break
-    
-        # 매도 진행, 계좌의 보유종목 조회
-        myWindow.detail_account_mystock(account_num,
-                                        0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
-        print("보유종목조회 완료")
-        # 미체결 조회
-        myWindow.not_signed_account(account_num,
-                                        0)
-    
-        if stocksCnt > 50:
-            messageInfo = '보유종목 갯수 : {0}'.format(stocksCnt)
-            Common.SendLine(messageInfo)
-            buyFlag = False
-    
-        # 매도 ::: 보유종목 있을시, 매도진행
-        if len(account_stock_dict) > 0:
-            for i in account_stock_dict:
-                try:
-                    code = i
-                    buy_price = int(account_stock_dict[i]['매입가'])
-                    stockAmount = int(account_stock_dict[i]['보유수량'])
-                    possibleQuantity = int(account_stock_dict[i]['매매가능수량'])
-                    dfMinute = dataProcessing.GetStockPriceMinute(code)
-                    print('매도가격 : {0}, 현재가격 : {1}'.format(buy_price * sellRate, dfMinute.loc[0]['체결가']))
-    
-                    if not (buy_price * sellRate < dfMinute.loc[0]['체결가'] or buy_price * stopLoss > dfMinute.loc[0]['체결가']):  # 체결가가 매입금액의 n% 이상일 때 진행, 손절 가격 도달시 매도 진행
-                        continue
-                    # if useTradeAlgorithm:  # 거래에 사용되는 알고리즘 있으면 여기서 지정
-                    #     sellPrice = dataProcessing.CheckReturnPosition(dfMinute, "up", 3)  # 가격 반전 확인
-                    # else:
-                    #    sellPrice = int(dfMinute.loc[0]['체결가'])
-                    sellPrice = int(dfMinute.loc[0]['체결가'])
-                    if sellPrice is None:  # 가격 반전이 나오지 않았을 경우, 다음 code 확인
-                        continue
-                    if possibleQuantity < 1:  # 매매가능수량이 없을 때, 다음 code 확인
-                        continue
-                    myWindow.sell_Stock(code, possibleQuantity, sellPrice, account_num)
-                    time.sleep(0.3)
-                    # 라인 보내기
-                    messageInfo = '\n총 종목코드 : {0}\n총 수량 : {1}\n총 매도가 : {2}'.format(code, possibleQuantity, sellPrice)
-                    # Common.SendLine(messageInfo)
-                    
-                except Exception as e:
-                    # BizError += "\n매도 : " + str(e)
-                    # 라인 보내기
-                    messageInfo = '매도 Err : {0}'.format(e)
-                    Common.SendLine(messageInfo)
-    
-        # 예수금 존재할 때만, 매수 시도
-        myWindow.get_deposit(account_num, pw)
-
-        # 매수
-
-        if buyFlag:
-            for row in codes:
-                try:
-                    codes = random.sample(codes, 30) # 코스피 중 n개 샘플 먼저 진행
-                    if deposit < amount:
-                        break
-                    code = row['code']
-                    # dfMinute = dataProcessing.GetStockPriceMinute(code)
-                    dfStock = dataProcessing.GetStockPrice(code, 20)
-                    print('매수가격 : {0}, 현재가격 : {1}'.format(int(int(dfStock.loc[1]['종가']) * buyRate),
-                                                          dfStock.loc[0]['종가']))
-                    
-                    if int(dfStock.loc[0]['종가']) > int(int(dfStock.loc[1]['종가']) * buyRate):
-                        continue
-    
-                    # if useTradeAlgorithm:  # 거래에 사용되는 알고리즘 있으면 여기서 구분
-                    #     buyPrice = dataProcessing.CheckReturnPosition(dfMinute, "down", 3)  # 가격 반전 확인
-                    # else:
-                    #     buyPrice = int(dfStock.loc[0]['종가'])
-                    buyPrice = int(dfStock.loc[1]['종가']) * buyRate
-                    
-                    quantity = amount // buyPrice
-    
-                    if buyPrice is None:
-                        continue
-
-                    if code in account_stock_dict or code in not_signed_account_dict:  # 보유 종목, 미체결 종목, 금일 매수 종목에 대해서 매수 진행 X
-                        continue
-
-                    # if code in todayBuyCode : # 당일 재매수 X
-                    #     continue
-
-                    tmpOut_deposit = out_deposit
-                    myWindow.buy_Stock(code, quantity, buyPrice, account_num)
-                    time.sleep(0.3)
-                    # 예수금 존재할 때만, 매수 시도
-                    myWindow.get_deposit(account_num, pw)
-                    if tmpOut_deposit == out_deposit:
-                        # 라인 보내기
-                        messageInfo = '\n실패\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, out_deposit)
-                        Common.SendLine(messageInfo)
-                        continue
-                    # 라인 보내기
-                    messageInfo = '\n종목코드 : {0}\n총 수량 : {1}\n매수가 : {2}\n예수금 : {3}'.format(code, quantity, buyPrice, out_deposit)
-                    
-                    # Common.SendLine(messageInfo)
-                    todayBuyCode.append(code) # 금일 매수 종목 리스트에 삽입
-                    
-                except Exception as e:
-                    print('매수 Err : {0}'.format(e))
-                    # BizError += "\n매수 : " + str(e)
-
-                    # 라인 보내기
-                    messageInfo = '매수 Err : {0}'.format(e)
-                    Common.SendLine(messageInfo)
-
-        time.sleep(20)
-        
-    print("자동매매 종료, 일일 리포트 생성 시작")
-    DailyCode.DailyCode("dailyConfirmCode.json")
-    messageInfo = '자동 매매 완료, 10분 후 자동종료'
-    Common.SendLine(messageInfo)
-
-    os.system("shutdown -s -f -t 600")
-    sys.exit()
+    except Exception as e :
+        messageInfo = '자동 매매 완료, Err 종료'
+        Common.SendLine(messageInfo)
 
     # try:
     #     app = QApplication(sys.argv)

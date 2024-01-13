@@ -10,7 +10,6 @@ import pandas as pd
 import datetime
 import time
 import matplotlib.pyplot as plt
-
 def DailyCode(filePath) :
   rootPath = 'C:\Python_Stocks'
   inputFolderPath = os.path.join(rootPath, 'input')
@@ -41,4 +40,4 @@ def DailyCode(filePath) :
   dfResult.to_json(path_or_buf=filePath, orient="records")
   print("전체 : {0}, 대상 : {1}".format(len(df), len(lstResult)))
 
-# DailyCode("dailyConfirmCode.json")
+# DailyCode("../dailyConfirmCode.json")
