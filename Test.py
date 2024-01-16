@@ -468,8 +468,8 @@ if __name__ == "__main__":
                     except Exception as e:
                         # BizError += "\n매도 : " + str(e)
                         # 라인 보내기
-                        messageInfo = '매도 Err : {0}'.format(e)
-                        Common.SendLine(messageInfo)
+                        # messageInfo = '매도 Err : {0}'.format(e)
+                        # Common.SendLine(messageInfo)
 
             # 예수금 존재할 때만, 매수 시도
             myWindow.get_deposit(account_num, pw)
@@ -533,8 +533,8 @@ if __name__ == "__main__":
                         # BizError += "\n매수 : " + str(e)
 
                         # 라인 보내기
-                        messageInfo = '매수 Err : {0}'.format(e)
-                        Common.SendLine(messageInfo)
+                        # messageInfo = '매수 Err : {0}'.format(e)
+                        # Common.SendLine(messageInfo)
 
             time.sleep(20)
 
