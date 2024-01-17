@@ -475,6 +475,7 @@ if __name__ == "__main__":
                         # Common.SendLine(messageInfo)
 
                     except Exception as e:
+                        pass
                         # BizError += "\n매도 : " + str(e)
                         # 라인 보내기
                         # messageInfo = '매도 Err : {0}'.format(e)
