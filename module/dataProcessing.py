@@ -1347,7 +1347,7 @@ def calculTrade(df, lstDate, buyRate, takeBenefitRate, stopLossRate, adjustDay=N
         sellFlagstopLoss = False
 
         if buyPrice > lowPrice :
-            print(df.loc[DateIdx]['날짜'])
+            print('{0} // {1}'.format(df.loc[DateIdx]['날짜'], "매수날짜"))
             buyFlag = True
             dicResult['매수'] += 1
         else :
