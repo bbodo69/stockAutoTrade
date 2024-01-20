@@ -374,16 +374,16 @@ class MyWindow(QMainWindow):
 if __name__ == "__main__":
     try :
         if datetime.datetime.today().weekday() == 5 or datetime.datetime.today().weekday() == 6 :
-            os.system("shutdown -s -f -t 60")
+            os.system("shutdown -s -f -t 300")
             sys.exit()
         if datetime.datetime.today().weekday() == 3 or datetime.datetime.today().weekday() == 4 :
-            os.system("shutdown -s -f -t 60")
+            os.system("shutdown -s -f -t 300")
             sys.exit()
         if datetime.datetime.today().weekday() == 1 or datetime.datetime.today().weekday() == 2 :
-            os.system("shutdown -s -f -t 60")
+            os.system("shutdown -s -f -t 300")
             sys.exit()
         if datetime.datetime.today().weekday() == 0 :
-            os.system("shutdown -s -f -t 60")
+            os.system("shutdown -s -f -t 300")
             sys.exit()
 
         # read Config data
