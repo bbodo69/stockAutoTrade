@@ -6,6 +6,7 @@ import exchange_calendars as ecals
 import requests
 import operator
 from bs4 import BeautifulSoup
+import re
 
 startTime = time.time()
 
@@ -663,20 +664,33 @@ def standardizationStockSplit(df):
     gab = 1
     totalGab = 1
 
+
     for idx, row in df.iterrows():
+
+        if idx == len(df)-1:
+            break
+
+        fnlPrice = df.loc[idx]['종가']
+        fnlPriceYes = df.loc[idx+1]['종가']
+        # diffPrice = float(str(df.loc[idx]['전일비']).split(" ")[2])
+        # diffUpdown = str(df.loc[idx]['전일비']).split(" ")[0]
+        diffUpdown = re.findall(r'[\w\uAC00-\uD7A3]+', str(df.loc[idx]['전일비']))[0]
+        diffPrice = float(re.findall(r'\d+', str(df.loc[idx]['전일비']).replace(",",""))[0])
 
         if idx + 2 > len(df):
             break
 
         gabCheck = True
-
-        if df.loc[idx]['종가'] + df.loc[idx]['전일비'] == df.loc[idx + 1]['종가'] or df.loc[idx]['종가'] - df.loc[idx]['전일비'] == \
-                df.loc[idx + 1]['종가']:
-            gabCheck = False
+        if diffUpdown == "상승":
+            if fnlPrice == fnlPriceYes + diffPrice :
+                gabCheck = False
+        elif diffUpdown == "하락":
+            if fnlPrice == fnlPriceYes - diffPrice :
+                gabCheck = False
 
         if gabCheck:
-            if df.loc[idx]['종가'] > df.loc[idx + 1]['종가']:
-                gab = (df.loc[idx]['종가'] - df.loc[idx]['전일비']) / df.loc[idx + 1]['종가']
+            if fnlPrice > fnlPriceYes:
+                gab = (fnlPrice - diffPrice) / fnlPriceYes
                 if totalGab != 1:
                     df.iloc[idx, df.columns.get_loc('종가')] = int(df.loc[idx]['종가'] * totalGab)
                     df.iloc[idx, df.columns.get_loc('시가')] = int(df.loc[idx]['시가'] * totalGab)
@@ -685,8 +699,8 @@ def standardizationStockSplit(df):
                 totalGab = gab * totalGab
                 continue
 
-            if df.loc[idx]['종가'] < df.loc[idx + 1]['종가']:
-                gab = (df.loc[idx]['종가'] + df.loc[idx]['전일비']) / df.loc[idx + 1]['종가']
+            if fnlPrice < fnlPriceYes:
+                gab = (fnlPrice + diffPrice) / fnlPriceYes
                 if totalGab != 1:
                     df.iloc[idx, df.columns.get_loc('종가')] = int(df.loc[idx]['종가'] * totalGab)
                     df.iloc[idx, df.columns.get_loc('시가')] = int(df.loc[idx]['시가'] * totalGab)
@@ -694,6 +708,31 @@ def standardizationStockSplit(df):
                     df.iloc[idx, df.columns.get_loc('저가')] = int(df.loc[idx]['저가'] * totalGab)
                 totalGab = gab * totalGab
                 continue
+
+        # if df.loc[idx]['종가'] + df.loc[idx]['전일비'] == df.loc[idx + 1]['종가'] or df.loc[idx]['종가'] - df.loc[idx]['전일비'] == \
+        #         df.loc[idx + 1]['종가']:
+        #     gabCheck = False
+
+        # if gabCheck:
+        #     if df.loc[idx]['종가'] > df.loc[idx + 1]['종가']:
+        #         gab = (df.loc[idx]['종가'] - df.loc[idx]['전일비']) / df.loc[idx + 1]['종가']
+        #         if totalGab != 1:
+        #             df.iloc[idx, df.columns.get_loc('종가')] = int(df.loc[idx]['종가'] * totalGab)
+        #             df.iloc[idx, df.columns.get_loc('시가')] = int(df.loc[idx]['시가'] * totalGab)
+        #             df.iloc[idx, df.columns.get_loc('고가')] = int(df.loc[idx]['고가'] * totalGab)
+        #             df.iloc[idx, df.columns.get_loc('저가')] = int(df.loc[idx]['저가'] * totalGab)
+        #         totalGab = gab * totalGab
+        #         continue
+        #
+        #     if df.loc[idx]['종가'] < df.loc[idx + 1]['종가']:
+        #         gab = (df.loc[idx]['종가'] + df.loc[idx]['전일비']) / df.loc[idx + 1]['종가']
+        #         if totalGab != 1:
+        #             df.iloc[idx, df.columns.get_loc('종가')] = int(df.loc[idx]['종가'] * totalGab)
+        #             df.iloc[idx, df.columns.get_loc('시가')] = int(df.loc[idx]['시가'] * totalGab)
+        #             df.iloc[idx, df.columns.get_loc('고가')] = int(df.loc[idx]['고가'] * totalGab)
+        #             df.iloc[idx, df.columns.get_loc('저가')] = int(df.loc[idx]['저가'] * totalGab)
+        #         totalGab = gab * totalGab
+        #         continue
 
         if totalGab != 1:
             df.iloc[idx, df.columns.get_loc('종가')] = int(df.loc[idx]['종가'] * totalGab)
@@ -1550,15 +1589,24 @@ def isDisparity(code, MA, percent, gubun=None) :
             return True
         else :
             return False
-    
 
 
+def BollingerBand(code, N, K) :
+
+    # 보이저밴드 사용되는 df 생성, [날짜, 중간밴드, 상단밴드, 하단밴드]
+
+    # KOSPI DF 저장
+    dfCode = pd.DataFrame()
+
+    dfCode = GetStockPrice(code, 130)
+    # 배당락, 병합, 분할 표준화
+
+    dfCode = standardizationStockSplit(dfCode)
+
+    print(dfCode)
+    print(GetMovingAverageRetDF (dfCode, 20))
 
 
+testCode = '005930'
 
-
-
-
-
-
-
+BollingerBand(testCode, 1, 1)
