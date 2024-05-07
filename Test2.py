@@ -1,9 +1,34 @@
-# import module.dataProcessing as dataProcessing
+import module.dataProcessing as dataProcessing
+import pandas as pd
+import random
+import json
+
+dailyConfirmCode_filePath = "dailyConfirmCode.json"
+
+# read confirmCodeFile
+with open(dailyConfirmCode_filePath, 'rt', encoding='UTF8') as json_file:
+    codes = json.load(json_file)
+
+
+# df = pd.DataFrame(columns=['1', '2'])
 #
-# dfStock = dataProcessing.GetStockPrice("001530", 20)
+# for i in range(0, 10) :
+#     list_row = [1, 2]
+#     df.loc[len(df)] = list_row
+#
+# print(df)
+print(len(codes))
+if len(codes) > 30 :
+    codes = random.sample(codes, 30)
+else :
+    pass
+print(len(codes))
 
-# Test update
+test = [{1:1, 2:2, 3:3, 4:4, 5:5, 6:6}]
 
-print("Test")
-
-# Test Check
+# if len(test) > 3 :
+#     random.sample(test, 3)
+# else :
+#     pass
+# print(test)
+# random.sample(test, 2)

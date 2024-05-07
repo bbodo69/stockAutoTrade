@@ -220,7 +220,8 @@ def calculResult(MA, buyRate, takeBenefitRate, stopLossRate):
                     tmp2 = row2['날짜']
                     continue
                 if tmp != -1 and int(row2['종가']) < 97 :
-                    lstDate.append(row2['날짜'])
+                    lstDate.append(tmp2)
+                    # lstDate.append(row2['날짜'])
                     print(tmp2)
                     print(row2['날짜'])
                     tmp = -1
