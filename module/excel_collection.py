@@ -25,8 +25,10 @@ def saveDFToNewExcel(fileName, sheetName, df):
         wb.save(fileName)
     with pd.ExcelWriter(fileName, mode='a') as writer:
         workBook = writer.book
+
         try:
-            workBook.remove(workBook[sheetName])
+            if sheetName in workBook.sheetnames:
+                workBook.remove(workBook[sheetName])
         except:
             print("Worksheet does not exist")
         df.to_excel(writer, sheet_name=sheetName, index=False)
@@ -45,4 +47,8 @@ def saveDFToAppendExcel(fileName, sheetName, df):
             print("Worksheet does not exist")
 
     with pd.ExcelWriter(fileName, mode='a') as writer:
-        df.to_excel(writer, sheet_name=sheetName, index=False)
+        df.to_excel(writer, sheet_name=sheetName, index=True)
+
+
+def saveDFToJson(fileName, df):
+    df.to_json(path_or_buf=fileName, orient="records")

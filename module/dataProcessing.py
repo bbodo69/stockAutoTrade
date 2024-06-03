@@ -8,10 +8,32 @@ import operator
 from bs4 import BeautifulSoup
 import re
 
+from pykrx import stock
+
 startTime = time.time()
 
 ######## FutureWarring 방지 ########
 warnings.simplefilter(action='ignore', category=FutureWarning)  # FutureWarning 제거
+
+def getStockCodes(market) :
+
+    # 현재 날짜 가져오기
+    today = datetime.today().strftime('%Y%m%d')
+
+    # 코스피 종목 목록 가져오기
+    kospi_stocks = stock.get_market_ticker_list(market=market, date=today)
+
+    # 종목명 가져오기
+    kospi_stock_data = []
+    for ticker in kospi_stocks:
+        name = stock.get_market_ticker_name(ticker)
+        kospi_stock_data.append([name, ticker])
+
+    # DataFrame 생성
+    df = pd.DataFrame(kospi_stock_data, columns=['name', 'code'])
+
+    return df
+
 
 
 ### 한국거래소 영업일 계산
@@ -53,6 +75,7 @@ def dicHighestPrice(df, day):
             dicResult[row['날짜']] = row['고가']
 
     return dicResult
+
 
 def dicLowestPrice(df, day):
     dicResult = {}
@@ -139,6 +162,7 @@ def RemainNDayPriceHighLowPrice(df, day, gubun):
                     result.append(df.iloc[i]['날짜'] + "^" + str(iPrice) + "^" + str(i))
 
     return result
+
 
 def UpPricePre5DayPattern(code):
     df = GetStockPrice(code, 250)
@@ -277,7 +301,8 @@ def ExpectNextHighPrice(code, df):
 
     return sReturn
 
-def GetStockPrice(code, count):
+
+def GetStockPriceFromNaver(code, count):
     # 한국 지수별 가격정보 가져오기
     headers = {
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36'}
@@ -301,6 +326,100 @@ def GetStockPrice(code, count):
     df = df.reset_index(drop=False)
 
     return df
+
+
+def GetStockPrice(code, count):
+    todate = datetime.now().strftime("%Y%m%d")
+    fromdate = (datetime.now() - timedelta(days=count)).strftime("%Y%m%d")
+
+    # pykrx 라이브러리 주가 가져오기
+    df = stock.get_market_ohlcv_by_date(fromdate=fromdate, todate=todate, ticker=code)
+    df['전일비'] = df['종가'] - df['종가'].shift()
+    return df
+
+
+def addMV(df, MV):
+    if "이평선" + str(MV) in df.columns:
+        return df
+
+    df["이평선" + str(MV)] = round(df["종가"].rolling(window=MV).mean(), 0)
+    df = df[MV:]
+    return df
+
+def addMVTrend(df, MV) :
+    if "이평선" + str(MV) not in df.columns:
+        df["이평선" + str(MV)] = round(df["종가"].rolling(window=MV).mean(), 0)
+    df['상승추세'+str(MV)] = df["이평선" + str(MV)].diff() > 0
+    return df
+
+def addBBTrend(df, MV, cons) :
+    if "하한선" + str(MV) not in df.columns:
+        addBolengerBand(df, MV, cons)
+    df['하한선추세' + str(MV)] = df["하한선" + str(MV)].diff() > 0
+
+    return df
+
+
+def addInOut (df, profit, loss):
+
+    if '매수' not in df.columns:
+        return df
+
+    for idx, row in df.iterrows():
+        if row['매수'] == "" or row['매수'] == "NaN":
+            continue
+
+        if(df.index.get_loc(idx) + 1 >= len(df)):
+            continue
+        if(df.index.get_loc(idx) - 1 < 0):
+            continue
+
+        buyPrice = row['매수가']
+        next_date = df.index[df.index.get_loc(idx) + 1]
+
+        for idx2, row2 in df.loc[next_date:].iterrows():
+            df.at[next_date, '손익가'] = buyPrice * profit
+            df.at[next_date, '손절가'] = buyPrice * loss
+            if buyPrice * profit < row2['고가'] and buyPrice * loss > row2['저가']:
+                break
+            elif buyPrice * profit < row2['고가']:
+                df.at[next_date, '수익'] = 'Y'
+                break
+            elif buyPrice * loss > row2['저가']:
+                df.at[next_date, '수익'] = 'N'
+                break
+    return df
+
+
+# '매수' 컬럼이 'Y' 인 것에 대해서 수익률 계산
+
+
+def addDisparity(df, MV):
+    if "이평선" + str(MV) in df.columns:
+        # 주가와 이평선 거리 차이를
+        df["이격도" + str(MV)] = round(df["종가"] / df["이평선" + str(MV)] * 100, 1)
+        return df
+    else:
+        df["이평선" + str(MV)] = round(df["종가"].rolling(window=MV).mean(), 0)
+        df["이격도" + str(MV)] = round(df["종가"] / df["이평선" + str(MV)] * 100, 1)
+        return df
+
+
+def addBolengerBand(df, MV, cons):
+    if "이평선" + str(MV) in df.columns:
+        df['표준편차' + str(MV)] = df['종가'].rolling(window=MV).std()
+        tmp_std = cons * df['표준편차' + str(MV)]
+        df['상한선' + str(MV)] = round(df["이평선" + str(MV)] + tmp_std, 1)
+        df['하한선' + str(MV)] = round(df["이평선" + str(MV)] - tmp_std, 1)
+    else:
+        df["이평선" + str(MV)] = round(df["종가"].rolling(window=MV).mean(), 0)
+        df['표준편차' + str(MV)] = df['종가'].rolling(window=MV).std()
+        tmp_std = cons * df['표준편차' + str(MV)]
+        df['상한선' + str(MV)] = round(df["이평선" + str(MV)] + tmp_std, 1)
+        df['하한선' + str(MV)] = round(df["이평선" + str(MV)] - tmp_std, 1)
+
+    return df
+
 
 
 def GetStockPriceWithPage(code, page):
@@ -338,12 +457,12 @@ def GetStockPriceWithPage(code, page):
 
 def GetStockPriceMinute(code):
     # 한국 지수별 가격정보 가져오기
-    try :
+    try:
         headers = {
             'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36'}
         time = datetime.today().strftime('%Y%m%d')
         time = str(time) + ("180000")
-    
+
         url = "https://finance.naver.com/item/sise_time.naver?code={}&thistime={}&page={}".format(code, time, 1)
         res = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
         html = BeautifulSoup(res.text, 'lxml')
@@ -355,9 +474,9 @@ def GetStockPriceMinute(code):
             url = "https://finance.naver.com/item/sise_time.naver?code={}&thistime={}&page={}".format(code, time, i)
             res = requests.get(url, headers={'User-agent': 'Mozilla/5.0'})
             df = pd.concat([df, pd.read_html(res.text, header=0)[0]], axis=0)
-    except Exception as e :
+    except Exception as e:
         df = GetStockPrice(code, 20)
-        df.rename(columns={"종가": "체결가"}, inplace = True)
+        df.rename(columns={"종가": "체결가"}, inplace=True)
 
     # df.dropna()를 이용해 결측값 있는 행 제거
     df = df.dropna()
@@ -491,25 +610,30 @@ def GetMovingAverage(df, day):
 
     return dic
 
+
 def GetMovingAverageRetDF(df, day):
     # 이동평균선 계산
     dfResult = pd.DataFrame(columns=['날짜', '종가'])
-
+    print(3)
     for idx, row in df.iterrows():
+        print(4)
+        print(idx)
+        print(day)
         if idx + day > len(df):
             break
-
+        print(5)
         n = day
-
         tmp = 0
         for j in range(0, n):
             tmp += int(df.loc[idx + j]['종가'])
+        print(6)
         movingAverage = tmp / n
         movingAverage = int(movingAverage)
 
-        dfResult.loc[len(dfResult)]= [row['날짜'], movingAverage]
+        dfResult.loc[len(dfResult)] = [row['날짜'], movingAverage]
 
     return dfResult
+
 
 def GetDateFollowingMAPattern(df, day, gubun):
     '''
@@ -543,7 +667,7 @@ def GetDateFollowingMAPattern(df, day, gubun):
         movingAverage = tmp / n
         movingAverage = int(movingAverage)
         dic[row['날짜']] = movingAverage
- 
+
     for idx, key in enumerate(dic):
         if len(dic) < idx + len(gubun) + 1:
             break
@@ -561,9 +685,10 @@ def GetDateFollowingMAPattern(df, day, gubun):
                     break
 
         if tmpFlag == False:
-            dicResult[key] = {'가격':dic[key]}
-  
+            dicResult[key] = {'가격': dic[key]}
+
     return dicResult
+
 
 def GetMV(df, day):
     # df에 증감이 gubun을 따르는 day이동평균 인 지점을 dic['날짜'] = value 로 return
@@ -586,6 +711,7 @@ def GetMV(df, day):
         dic[row['날짜']] = movingAverage
 
     return dic
+
 
 def getUpDownMV(df, day, date):
     '''
@@ -612,13 +738,13 @@ def getUpDownMV(df, day, date):
     for j in range(0, n):
         preMV += int(df.loc[idxDate + j + 1]['종가'])
 
-    if targetMV > preMV :
+    if targetMV > preMV:
         return 0
     else:
         return 1
 
-def GetMVPattern(dic, gubun):
 
+def GetMVPattern(dic, gubun):
     dicResult = {}
 
     for idx, key in enumerate(dic):
@@ -642,6 +768,7 @@ def GetMVPattern(dic, gubun):
 
     return dicResult
 
+
 def checkStockSplit(df, day):
     for idx, row in df.iterrows():
         if idx > day:
@@ -664,28 +791,27 @@ def standardizationStockSplit(df):
     gab = 1
     totalGab = 1
 
-
     for idx, row in df.iterrows():
 
-        if idx == len(df)-1:
+        if idx == len(df) - 1:
             break
 
         fnlPrice = df.loc[idx]['종가']
-        fnlPriceYes = df.loc[idx+1]['종가']
+        fnlPriceYes = df.loc[idx + 1]['종가']
         # diffPrice = float(str(df.loc[idx]['전일비']).split(" ")[2])
         # diffUpdown = str(df.loc[idx]['전일비']).split(" ")[0]
         diffUpdown = re.findall(r'[\w\uAC00-\uD7A3]+', str(df.loc[idx]['전일비']))[0]
-        diffPrice = float(re.findall(r'\d+', str(df.loc[idx]['전일비']).replace(",",""))[0])
+        diffPrice = float(re.findall(r'\d+', str(df.loc[idx]['전일비']).replace(",", ""))[0])
 
         if idx + 2 > len(df):
             break
 
         gabCheck = True
         if diffUpdown == "상승":
-            if fnlPrice == fnlPriceYes + diffPrice :
+            if fnlPrice == fnlPriceYes + diffPrice:
                 gabCheck = False
         elif diffUpdown == "하락":
-            if fnlPrice == fnlPriceYes - diffPrice :
+            if fnlPrice == fnlPriceYes - diffPrice:
                 gabCheck = False
 
         if gabCheck:
@@ -744,6 +870,7 @@ def standardizationStockSplit(df):
 
     return df
 
+
 def gabCheck(df):
     global gab
 
@@ -760,6 +887,8 @@ def gabCheck(df):
             continue
         return False
     return True
+
+
 '''
         # 병합
         if df.loc[idx]['종가'] > df.loc[idx+1]['종가'] * 1.3:
@@ -788,6 +917,7 @@ def gabCheck(df):
     return df
 '''
 
+
 # 최신 최저가 최고가 구하기
 def getFirstHighLowPrice(df, day, gubun1, gubun2):
     # gunun1 = n 일 동안 고, 저 유지
@@ -796,6 +926,7 @@ def getFirstHighLowPrice(df, day, gubun1, gubun2):
     ret = 0
 
     return ret
+
 
 def getSecondHighLowPrice(df, date, day, gubun):
     # date = 시작되는 date
@@ -806,8 +937,8 @@ def getSecondHighLowPrice(df, date, day, gubun):
 
     return ret
 
-def getGubunPriceUseDate(df, listDate):
 
+def getGubunPriceUseDate(df, listDate):
     # 날짜 데이터를 가지고, 종가, 고가, 저가, 시가 가져오기
     dicResult = {}
 
@@ -821,7 +952,8 @@ def getGubunPriceUseDate(df, listDate):
         dicResult[i]['시가'] = dfDateKey.loc[i]['시가']
 
     return dicResult
-        
+
+
 def GetMostPriceFromDF(df, targetDate, day, gubun, n):
     '''
     :param df:
@@ -841,25 +973,25 @@ def GetMostPriceFromDF(df, targetDate, day, gubun, n):
 
     while n != 0:
 
-        for i in range(1, len(df)): # 대상 날짜에서 과거날짜 반복
+        for i in range(1, len(df)):  # 대상 날짜에서 과거날짜 반복
 
             checkMost = True
 
-            targetIdx = idxTargetDate + i # 비교날짜 인덱스 추출
+            targetIdx = idxTargetDate + i  # 비교날짜 인덱스 추출
 
             if targetIdx + 1 >= len(df):
                 n -= 1
                 break
 
-            mostPrice = df.loc[targetIdx]['종가'] # 첫 비교날짜 가격 추출
+            mostPrice = df.loc[targetIdx]['종가']  # 첫 비교날짜 가격 추출
 
-            for j in range(1, day + 1): # 비교 날짜 앞뒤 날짜 추출 후 가격 최고, 최저 유지 비교
+            for j in range(1, day + 1):  # 비교 날짜 앞뒤 날짜 추출 후 가격 최고, 최저 유지 비교
                 # print('targetIdx : i')
 
                 afterTargetIdx = targetIdx - j
                 beforeTargetIdx = targetIdx + j
 
-                if afterTargetIdx > idxTargetDate :
+                if afterTargetIdx > idxTargetDate:
 
                     if gubun == '고가':
                         if mostPrice < df.loc[afterTargetIdx]['종가']:
@@ -871,7 +1003,7 @@ def GetMostPriceFromDF(df, targetDate, day, gubun, n):
                             checkMost = False
                             break
 
-                if beforeTargetIdx < len(df) :
+                if beforeTargetIdx < len(df):
                     if gubun == '고가':
                         if mostPrice < df.loc[beforeTargetIdx]['종가']:
                             checkMost = False
@@ -896,6 +1028,7 @@ def GetMostPriceFromDF(df, targetDate, day, gubun, n):
 
     return dic
 
+
 def GetMostPriceOneSideFromDF(df, targetDate, day, gubun, n, continueDay):
     '''
     :param df:
@@ -916,55 +1049,55 @@ def GetMostPriceOneSideFromDF(df, targetDate, day, gubun, n, continueDay):
 
     while n != 0:
 
-        for i in range(1, len(df)): # 대상 날짜에서 과거날짜 반복
+        for i in range(1, len(df)):  # 대상 날짜에서 과거날짜 반복
 
             checkMostBefore = True
             checkMostAfter = True
 
-            targetIdx = idxTargetDate + i # 비교날짜 인덱스 추출
+            targetIdx = idxTargetDate + i  # 비교날짜 인덱스 추출
 
             if targetIdx + 1 >= len(df):
                 n -= 1
                 break
 
-            mostPrice = df.loc[targetIdx][gubun] # 첫 비교날짜 가격 추출
+            mostPrice = df.loc[targetIdx][gubun]  # 첫 비교날짜 가격 추출
 
-            for j in range(1, day + 1): # 비교 날짜 전 가격 최고, 최저 유지 비교
+            for j in range(1, day + 1):  # 비교 날짜 전 가격 최고, 최저 유지 비교
 
                 beforeTargetIdx = targetIdx + j
                 afterTargetIdx = targetIdx - j
 
                 if beforeTargetIdx < len(df) and checkMostBefore and targetIdx - continueDay > 0:
                     if gubun == '고가':
-                        for k in range(0, continueDay+1):
+                        for k in range(0, continueDay + 1):
                             if k == 1:
                                 continue
-                            if mostPrice < df.loc[beforeTargetIdx - k][gubun] :
+                            if mostPrice < df.loc[beforeTargetIdx - k][gubun]:
                                 checkMostBefore = False
                                 break
 
                     if gubun == '저가':
-                        for k in range(0, continueDay+1):
+                        for k in range(0, continueDay + 1):
                             if k == 1:
                                 continue
-                            if mostPrice > df.loc[beforeTargetIdx - k][gubun] :
+                            if mostPrice > df.loc[beforeTargetIdx - k][gubun]:
                                 checkMostBefore = False
                                 break
 
                 if afterTargetIdx >= 0 and checkMostAfter and targetIdx + continueDay < len(df):
                     if gubun == '고가':
-                        for k in range(0, continueDay+1):
+                        for k in range(0, continueDay + 1):
                             if k == 1:
                                 continue
-                            if mostPrice < df.loc[afterTargetIdx + k][gubun] :
+                            if mostPrice < df.loc[afterTargetIdx + k][gubun]:
                                 checkMostAfter = False
                                 break
 
                     if gubun == '저가':
-                        for k in range(0, continueDay+1):
+                        for k in range(0, continueDay + 1):
                             if k == 1:
                                 continue
-                            if mostPrice > df.loc[afterTargetIdx + k][gubun] :
+                            if mostPrice > df.loc[afterTargetIdx + k][gubun]:
                                 checkMostAfter = False
                                 break
 
@@ -985,6 +1118,7 @@ def GetMostPriceOneSideFromDF(df, targetDate, day, gubun, n, continueDay):
 
     return dic
 
+
 def GetMostPriceBeforeTargetDate(df, targetDate, day, gubun, n):
     '''
     :param df:
@@ -1004,24 +1138,24 @@ def GetMostPriceBeforeTargetDate(df, targetDate, day, gubun, n):
 
     while n != 0:
 
-        for i in range(1, len(df)): # 대상 날짜에서 과거날짜 반복
+        for i in range(1, len(df)):  # 대상 날짜에서 과거날짜 반복
 
             checkMost = True
 
-            targetIdx = idxTargetDate + i # 비교날짜 인덱스 추출
+            targetIdx = idxTargetDate + i  # 비교날짜 인덱스 추출
 
             if targetIdx + 1 >= len(df):
                 n -= 1
                 break
 
-            mostPrice = df.loc[targetIdx][gubun] # 첫 비교날짜 가격 추출
+            mostPrice = df.loc[targetIdx][gubun]  # 첫 비교날짜 가격 추출
 
-            for j in range(1, day + 1): # 비교 날짜 앞뒤 날짜 추출 후 가격 최고, 최저 유지 비교
+            for j in range(1, day + 1):  # 비교 날짜 앞뒤 날짜 추출 후 가격 최고, 최저 유지 비교
                 # print('targetIdx : i')
 
                 beforeTargetIdx = targetIdx + j
 
-                if beforeTargetIdx < len(df) :
+                if beforeTargetIdx < len(df):
                     if gubun == '고가':
                         if mostPrice < df.loc[beforeTargetIdx][gubun]:
                             checkMost = False
@@ -1046,6 +1180,7 @@ def GetMostPriceBeforeTargetDate(df, targetDate, day, gubun, n):
 
     return dic
 
+
 def GetMostPriceBeforeAfter(df, targetDate, before, after, gubun, n):
     '''
     :param df:
@@ -1056,7 +1191,7 @@ def GetMostPriceBeforeAfter(df, targetDate, before, after, gubun, n):
     :param n: 뽑을 갯수
     :return:
     '''
-    
+
     # if targetDate not in str(df['날짜']):
     #     print(targetDate)
     #     return None
@@ -1073,24 +1208,24 @@ def GetMostPriceBeforeAfter(df, targetDate, before, after, gubun, n):
 
     while n != 0:
 
-        for i in range(1, len(df)): # 대상 날짜에서 과거날짜 반복
+        for i in range(1, len(df)):  # 대상 날짜에서 과거날짜 반복
 
             checkMost = True
 
-            targetIdx = idxTargetDate + i # 비교날짜 인덱스 추출
+            targetIdx = idxTargetDate + i  # 비교날짜 인덱스 추출
 
             if targetIdx + 1 >= len(df):
                 n -= 1
                 break
 
-            mostPrice = df.loc[targetIdx]['종가'] # 첫 비교날짜 가격 추출
+            mostPrice = df.loc[targetIdx]['종가']  # 첫 비교날짜 가격 추출
 
-            for j in range(1, after + 1): # 비교 날짜 앞뒤 날짜 추출 후 가격 최고, 최저 유지 비교
+            for j in range(1, after + 1):  # 비교 날짜 앞뒤 날짜 추출 후 가격 최고, 최저 유지 비교
                 # print('targetIdx : i')
 
                 afterTargetIdx = targetIdx - j
 
-                if afterTargetIdx > -1 :
+                if afterTargetIdx > -1:
 
                     if gubun == '고가':
                         if mostPrice < df.loc[afterTargetIdx]['종가']:
@@ -1108,12 +1243,12 @@ def GetMostPriceBeforeAfter(df, targetDate, before, after, gubun, n):
             if not checkMost:
                 continue
 
-            for j in range(1, before + 1): # 비교 날짜 앞뒤 날짜 추출 후 가격 최고, 최저 유지 비교
+            for j in range(1, before + 1):  # 비교 날짜 앞뒤 날짜 추출 후 가격 최고, 최저 유지 비교
                 # print('targetIdx : i')
 
                 beforeTargetIdx = targetIdx + j
 
-                if beforeTargetIdx < len(df) :
+                if beforeTargetIdx < len(df):
                     if gubun == '고가':
                         if mostPrice < df.loc[beforeTargetIdx]['종가']:
                             checkMost = False
@@ -1138,8 +1273,8 @@ def GetMostPriceBeforeAfter(df, targetDate, before, after, gubun, n):
 
     return dic
 
-def getTrandLine(df, startDate, endDate, gubun):
 
+def getTrandLine(df, startDate, endDate, gubun):
     dfDateKey = df.set_index('날짜')
     startDateIdx = dfDateKey.index.get_loc(startDate)
     endDateIdx = dfDateKey.index.get_loc(endDate)
@@ -1152,6 +1287,7 @@ def getTrandLine(df, startDate, endDate, gubun):
     result = round(diffPrice / diffDay, 3)
 
     return result
+
 
 def compareTwoDate(date1, date2):
     if date1 > date2:
@@ -1172,7 +1308,7 @@ def getProfitLoss(df, buyDate, profitPrice, lossPrice):
     dfDateKey = df.set_index('날짜')
     idxBuyDate = dfDateKey.index.get_loc(buyDate)
 
-    for i in range(1, idxBuyDate+1) :
+    for i in range(1, idxBuyDate + 1):
         targetIdx = idxBuyDate - i
 
         if df.loc[targetIdx]['고가'] >= profitPrice:
@@ -1182,6 +1318,7 @@ def getProfitLoss(df, buyDate, profitPrice, lossPrice):
 
     return 9
 
+
 def standardizaionPriceUseMV(df, day):
     '''
     :param df: 네이버 시세 DF
@@ -1190,7 +1327,7 @@ def standardizaionPriceUseMV(df, day):
     '''
 
     dfResult = df.head(0)
-    dfResult = dfResult.drop(['index', '전일비', '거래량'], axis= 1)
+    dfResult = dfResult.drop(['index', '전일비', '거래량'], axis=1)
     BreakFlag = False
 
     for idx, row in df.iterrows():
@@ -1206,7 +1343,7 @@ def standardizaionPriceUseMV(df, day):
                 break
 
             # 이동평균선 구해주기
-            EndPrice += df.loc[idx+j]['종가']
+            EndPrice += df.loc[idx + j]['종가']
             StartPrice += df.loc[idx + j]['시가']
             HighPrice += df.loc[idx + j]['고가']
             LowPrice += df.loc[idx + j]['저가']
@@ -1225,9 +1362,11 @@ def standardizaionPriceUseMV(df, day):
         standardLowPriceMV = round(row['저가'] / LowPriceMV, 4)
 
         # dataRow 추가
-        dfResult.loc[len(dfResult)] = [row['날짜'], standardEndPriceMV, standardStartPriceMV, standardHighPriceMV, standardLowPriceMV]
+        dfResult.loc[len(dfResult)] = [row['날짜'], standardEndPriceMV, standardStartPriceMV, standardHighPriceMV,
+                                       standardLowPriceMV]
 
     return dfResult
+
 
 def standardizaionPriceUseMVRateDFPrice(df, day):
     '''
@@ -1237,7 +1376,7 @@ def standardizaionPriceUseMVRateDFPrice(df, day):
     '''
 
     dfResult = df.head(0)
-    dfResult = dfResult.drop(['index', '전일비', '거래량'], axis= 1)
+    dfResult = dfResult.drop(['index', '전일비', '거래량'], axis=1)
     BreakFlag = False
     maxPrice = df['종가'].max()
     minPrice = df['종가'].min()
@@ -1256,7 +1395,7 @@ def standardizaionPriceUseMVRateDFPrice(df, day):
                 break
 
             # 이동평균선 구해주기
-            EndPrice += df.loc[idx+j]['종가']
+            EndPrice += df.loc[idx + j]['종가']
             StartPrice += df.loc[idx + j]['시가']
             HighPrice += df.loc[idx + j]['고가']
             LowPrice += df.loc[idx + j]['저가']
@@ -1275,9 +1414,11 @@ def standardizaionPriceUseMVRateDFPrice(df, day):
         standardLowPriceMV = round(row['저가'] / LowPriceMV * medianPrice, 4)
 
         # dataRow 추가
-        dfResult.loc[len(dfResult)] = [row['날짜'], standardEndPriceMV, standardStartPriceMV, standardHighPriceMV, standardLowPriceMV]
+        dfResult.loc[len(dfResult)] = [row['날짜'], standardEndPriceMV, standardStartPriceMV, standardHighPriceMV,
+                                       standardLowPriceMV]
 
     return dfResult
+
 
 def addDay(df, date, day):
     '''
@@ -1286,7 +1427,7 @@ def addDay(df, date, day):
     day = 추가 되어질 날짜 기간
     return = date 정보
     '''
-    
+
     # reverse df
     df = df.loc[::-1]
     df = df.reset_index(drop=True)
@@ -1294,13 +1435,13 @@ def addDay(df, date, day):
     idxDate = dfDateKey.index.get_loc(date)
 
     # df 에 해당 날짜가 없을 경우, 0 return
-    if idxDate + day > len(df) + 1 : 
+    if idxDate + day > len(df) + 1:
         return 0
     idxDate += day
     return df.loc[idxDate]['날짜']
 
-def dicMAUpCrossPoint(df, MAUp, MADown) :
 
+def dicMAUpCrossPoint(df, MAUp, MADown):
     '''
     :param df: 네이버 주식정보
     :param MAUp: 이동평균선 n 값
@@ -1321,7 +1462,7 @@ def dicMAUpCrossPoint(df, MAUp, MADown) :
             tmp += int(df.loc[idx + j]['종가'])
         movingAverage = tmp / n
         movingAverage = int(movingAverage)
-        dfMAUp.loc[len(dfMAUp)]= [row['날짜'], movingAverage]
+        dfMAUp.loc[len(dfMAUp)] = [row['날짜'], movingAverage]
     # MAEnd 이평선
     dfMADown = pd.DataFrame(columns=['날짜', '가격'])
     for idx, row in df.iterrows():
@@ -1333,25 +1474,26 @@ def dicMAUpCrossPoint(df, MAUp, MADown) :
             tmp += int(df.loc[idx + j]['종가'])
         movingAverage = tmp / n
         movingAverage = int(movingAverage)
-        dfMADown.loc[len(dfMADown)]= [row['날짜'], movingAverage]
+        dfMADown.loc[len(dfMADown)] = [row['날짜'], movingAverage]
     # 이평선 돌파 혹은 하강 구하기
-    for idx, row in dfMADown.iterrows() :
-        if isTmp :
-            if int(dfMADown.loc[idx]['가격']) > int(dfMAUp.loc[idx]['가격']) :
-                dicResult[dfMADown.loc[idx]['날짜']] = {'가격':dfMADown.loc[idx]['가격']}
+    for idx, row in dfMADown.iterrows():
+        if isTmp:
+            if int(dfMADown.loc[idx]['가격']) > int(dfMAUp.loc[idx]['가격']):
+                dicResult[dfMADown.loc[idx]['날짜']] = {'가격': dfMADown.loc[idx]['가격']}
                 isTmp = False
                 continue
 
-        if int(dfMADown.loc[idx]['가격']) < int(dfMAUp.loc[idx]['가격']) :
+        if int(dfMADown.loc[idx]['가격']) < int(dfMAUp.loc[idx]['가격']):
             isTmp = True
-        else :
+        else:
             isTmp = False
 
     return dicResult
 
     # 이동평균선 구하기
 
-def calculTrade(df, lstDate, buyRate, takeBenefitRate, stopLossRate, adjustDay=None) :
+
+def calculTrade(df, lstDate, buyRate, takeBenefitRate, stopLossRate, adjustDay=None):
     '''
     :param df: 네이버 주식정보
     :param lstDate: 매수할 날짜 리스트
@@ -1360,18 +1502,18 @@ def calculTrade(df, lstDate, buyRate, takeBenefitRate, stopLossRate, adjustDay=N
     :param stopLossRate: 손절가 %
     :return dicResult : {'총':0, '매수:0, '익절':0, '손절':0}
     '''
-    dicResult = {'총':0, '매수':0, '익절':0, '손절':0}
+    dicResult = {'총': 0, '매수': 0, '익절': 0, '손절': 0}
     dicResult['총'] = len(lstDate)
 
-    for i in lstDate :
+    for i in lstDate:
         DateIdx = df.index[df.날짜 == i][0]
         DateIdx = DateIdx - adjustDay
-        if DateIdx < 0 :
+        if DateIdx < 0:
             DateIdx = 0
-            
+
         # 매수 시점 가격 정보
         # startPrice = int(df.loc[DateIdx]['시가'])
-        startPrice = int(df.loc[DateIdx+adjustDay]['종가']) # 이평선 크로스 가격
+        startPrice = int(df.loc[DateIdx + adjustDay]['종가'])  # 이평선 크로스 가격
         lowPrice = int(df.loc[DateIdx]['저가'])
         highPrice = int(df.loc[DateIdx]['고가'])
 
@@ -1385,33 +1527,34 @@ def calculTrade(df, lstDate, buyRate, takeBenefitRate, stopLossRate, adjustDay=N
         SellFlagbenefit = False
         sellFlagstopLoss = False
 
-        if buyPrice > lowPrice :
+        if buyPrice > lowPrice:
             print('{0} // {1}'.format(df.loc[DateIdx]['날짜'], "매수날짜"))
             buyFlag = True
             dicResult['매수'] += 1
-        else :
-            continue # 매수 하지 않았다면, 매도까지 프로세스 진행하지 않는다.
+        else:
+            continue  # 매수 하지 않았다면, 매도까지 프로세스 진행하지 않는다.
 
-        for i in range(1, DateIdx) :
+        for i in range(1, DateIdx):
             if DateIdx == 0:
                 continue
             targetDateIdx = DateIdx - i
             targetHighPrice = df.loc[targetDateIdx]['고가']
             targetLowPrice = df.loc[targetDateIdx]['저가']
 
-            if sellPriceBenefit < targetHighPrice : # 익절
+            if sellPriceBenefit < targetHighPrice:  # 익절
                 dicResult['익절'] += 1
                 print("익절 : {0} // {1} // {2}".format(df.loc[targetDateIdx]['날짜'], sellPriceBenefit, buyPrice))
                 break
 
-            if sellPriceStopLoss > targetLowPrice : # 손절
+            if sellPriceStopLoss > targetLowPrice:  # 손절
                 dicResult['손절'] += 1
                 print("손절 : {0} // {1} // {2}".format(df.loc[targetDateIdx]['날짜'], sellPriceStopLoss, buyPrice))
                 break
 
     return dicResult
 
-def CrossDateStockPriceAndMV(df, dfMA, gubun) :
+
+def CrossDateStockPriceAndMV(df, dfMA, gubun):
     '''
     주가가 이평선을 돌파한 지점의 날짜를 저장
     :param df: 네이버 주식정보
@@ -1425,36 +1568,37 @@ def CrossDateStockPriceAndMV(df, dfMA, gubun) :
     tmpDate = ''
     tmpPrice = ''
     tmp = False
-    for idx, i in dfMA.iterrows() : # dfMA 반복. 날짜를 키 값으로 받아서 df 가격정보 추출
-        if gubun.upper() == "U" :
-            if tmp : # 앞 일자에서 조건을 만족
-                if i['종가'] >= df.loc[i['날짜']]['종가'] :
-                    dicResult[tmpDate] = {'가격' : tmpPrice}
+    for idx, i in dfMA.iterrows():  # dfMA 반복. 날짜를 키 값으로 받아서 df 가격정보 추출
+        if gubun.upper() == "U":
+            if tmp:  # 앞 일자에서 조건을 만족
+                if i['종가'] >= df.loc[i['날짜']]['종가']:
+                    dicResult[tmpDate] = {'가격': tmpPrice}
                     tmp = False
                     continue
-            if i['종가'] < df.loc[i['날짜']]['종가'] :
+            if i['종가'] < df.loc[i['날짜']]['종가']:
                 tmp = True
                 tmpDate = i['날짜']
                 tmpPrice = i['종가']
-            else :
+            else:
                 tmp = False
-            
-        elif gubun.upper() == "D" :
-            if tmp : 
-                if i['종가'] <= df.loc[i['날짜']]['종가'] :
-                    dicResult[tmpDate] = {'가격' : tmpPrice}
+
+        elif gubun.upper() == "D":
+            if tmp:
+                if i['종가'] <= df.loc[i['날짜']]['종가']:
+                    dicResult[tmpDate] = {'가격': tmpPrice}
                     tmp = False
                     continue
-            if i['종가'] > df.loc[i['날짜']]['종가'] :
+            if i['종가'] > df.loc[i['날짜']]['종가']:
                 tmp = True
                 tmpDate = i['날짜']
                 tmpPrice = i['종가']
-            else :
+            else:
                 tmp = False
-    
+
     return dicResult
 
-def dateOfBetweenTwoMV(df, dfLongMA, dfShortMA) :
+
+def dateOfBetweenTwoMV(df, dfLongMA, dfShortMA):
     '''
     주가가 긴 이동평균선 아래, 짧은 이동평균선 위에 존재하는 날짜들을 return
     :param df: 네이버 주식정보
@@ -1466,20 +1610,21 @@ def dateOfBetweenTwoMV(df, dfLongMA, dfShortMA) :
     dicResult = {}
 
     for idx, row in df.iterrows():
-        if idx > len(dfLongMA) :
+        if idx > len(dfLongMA):
             break
         currentPrice = df.loc[idx]['종가']
         longPrice = dfLongMA.loc[idx]['종가']
         shortPrice = dfShortMA.loc[idx]['종가']
         date = df.loc[idx]['날짜']
 
-        if currentPrice < longPrice and currentPrice > shortPrice :
+        if currentPrice < longPrice and currentPrice > shortPrice:
             dicResult[date] = {}
             dicResult[date].update({"가격": currentPrice})
-    
+
     return dicResult
 
-def isBetweenTwoMV(df, dfLongMA, dfShortMA, day) :
+
+def isBetweenTwoMV(df, dfLongMA, dfShortMA, day):
     '''
     주가가 긴 이동평균선 아래, 짧은 이동평균선 위에 존재하는 날짜들을 return
     :param df: 네이버 주식정보
@@ -1488,16 +1633,17 @@ def isBetweenTwoMV(df, dfLongMA, dfShortMA, day) :
     :param day : df idx 0일자, 현재일 기준 + day 전일에 대해 조건을 구함
     :return 두 이평선 사이에 주가가 있으면 True, 그렇지 않으면 False
     '''
-    currentPrice = df.loc[0+day]['종가']
-    longPrice = dfLongMA.loc[0+day]['종가']
-    shortPrice = dfShortMA.loc[0+day]['종가']
+    currentPrice = df.loc[0 + day]['종가']
+    longPrice = dfLongMA.loc[0 + day]['종가']
+    shortPrice = dfShortMA.loc[0 + day]['종가']
 
-    if currentPrice < longPrice and currentPrice > shortPrice :
+    if currentPrice < longPrice and currentPrice > shortPrice:
         return True
-    else :
+    else:
         return False
 
-def CodesAveragePriceInfo(lstCode, day) :
+
+def CodesAveragePriceInfo(lstCode, day):
     '''
     code 리스트, 데이터 날짜를 받아, 시가, 고가, 저가, 종가 가격 정보의 평균을 return
     :param lstCode 코드 리스트
@@ -1509,18 +1655,18 @@ def CodesAveragePriceInfo(lstCode, day) :
     highPrice = 0
     lowPrice = 0
     endPrice = 0
-    dicResult = {'시가':0, '고가':0, '저가':0, '종가':0}
+    dicResult = {'시가': 0, '고가': 0, '저가': 0, '종가': 0}
     cnt = 0
-    
-    for lstIdx, code in enumerate(lstCode) :
+
+    for lstIdx, code in enumerate(lstCode):
         print("{0} // {1}".format(len(lstCode), lstIdx))
         dfCode = GetStockPrice(code, day)
         dfCode = dfCode[::-1]
-        for idx, price in dfCode.iterrows() :
-            if idx == len(dfCode)-1:
+        for idx, price in dfCode.iterrows():
+            if idx == len(dfCode) - 1:
                 tmpEndPrice = price['종가']
                 continue
-            if idx == 0 :
+            if idx == 0:
                 break
             startPrice = price['시가']
             startPrice = round((startPrice / tmpEndPrice) - 1, 3)
@@ -1531,15 +1677,21 @@ def CodesAveragePriceInfo(lstCode, day) :
             endPrice = price['종가']
             endPrice = round((endPrice / tmpEndPrice) - 1, 3)
 
-            
             dicResult['시가'] += startPrice
             dicResult['고가'] += highPrice
             dicResult['저가'] += lowPrice
             dicResult['종가'] += endPrice
             cnt += 1
-            print("{0} / {1} / {2} / {3}\n{4} / {5} / {6} / {7}\n{8} / {9} / {10}".format(startPrice, highPrice, lowPrice, endPrice, round(dicResult['시가'] / cnt, 3), round(dicResult['고가'] / cnt, 3), round(dicResult['저가'] / cnt, 3), round(dicResult['종가'] / cnt, 3), tmpEndPrice, code, price['날짜']))
+            print(
+                "{0} / {1} / {2} / {3}\n{4} / {5} / {6} / {7}\n{8} / {9} / {10}".format(startPrice, highPrice, lowPrice,
+                                                                                        endPrice,
+                                                                                        round(dicResult['시가'] / cnt, 3),
+                                                                                        round(dicResult['고가'] / cnt, 3),
+                                                                                        round(dicResult['저가'] / cnt, 3),
+                                                                                        round(dicResult['종가'] / cnt, 3),
+                                                                                        tmpEndPrice, code, price['날짜']))
             tmpEndPrice = price['종가']
-            
+
     dicResult['시가'] = round(dicResult['시가'] / cnt, 3)
     dicResult['고가'] = round(dicResult['고가'] / cnt, 3)
     dicResult['저가'] = round(dicResult['저가'] / cnt, 3)
@@ -1547,15 +1699,17 @@ def CodesAveragePriceInfo(lstCode, day) :
 
     return dicResult
 
-def DisparityRetDF(code, count, MA) :
+
+def PreDisparityRetDF(code, count, MA):
     '''
     이격도 계산하여 df 로 리턴
     이격도 = 당일 기준의 종가/당일의 이동평균선 ×100
     :param code 종목 코드
     :return df{'날짜', '고가', '저가', 종가'}
     '''
+
     df = GetStockPrice(code, count)
-    df = standardizationStockSplit(df)
+    # df = standardizationStockSplit(df)
     dfMA = GetMovingAverageRetDF(df, MA)
     df = df.set_index('날짜')
 
@@ -1566,33 +1720,53 @@ def DisparityRetDF(code, count, MA) :
 
     return dfResult
 
-def isDisparity(code, MA, percent, gubun=None) :
-    
-    df = GetStockPrice(code, MA+10)
-    if not gabCheck(df) :
+
+def DisparityRetDF(df, MA):
+    '''
+    이격도 계산하여 df 로 리턴
+    이격도 = 당일 기준의 종가/당일의 이동평균선 ×100
+    :param code 종목 코드
+    :return df{'날짜', '시가', '고가', 종가', '이평선', '이격도'}
+    '''
+
+    dfMA = GetMovingAverageRetDF(df, MA)
+    df = df.set_index('날짜')
+
+    dfResult = pd.DataFrame(columns=['날짜', '고가', '저가', '종가'])
+    for idx, row in dfMA.iterrows():
+        tmp = round(df.loc[row['날짜']]['종가'] / row['종가'] * 100, 3)
+        dfResult.loc[len(dfResult)] = [row['날짜'], 0, 0, tmp]
+
+    return dfResult
+
+
+def isDisparity(code, MA, percent, gubun=None):
+    df = GetStockPrice(code, MA + 10)
+    if not gabCheck(df):
         return False
     df = standardizationStockSplit(df)
     dfMA = GetMovingAverageRetDF(df, MA)
     disparityToday = round(df.loc[0]['종가'] / dfMA.loc[0]['종가'], 3)
     disparityYesterday = round(df.loc[1]['종가'] / dfMA.loc[1]['종가'], 3)
 
-    if gubun == None or gubun.upper() == 'U' or gubun.upper() == 'UP' :
-        if disparityToday > percent and disparityYesterday < percent :
+    if gubun == None or gubun.upper() == 'U' or gubun.upper() == 'UP':
+        if disparityToday > percent and disparityYesterday < percent:
             print(code)
-            print("종가 : {0} // MA : {1}, 1종가 : {2} // 1MA : {3}".format(df.loc[0]['종가'], dfMA.loc[0]['종가'], df.loc[1]['종가'], dfMA.loc[1]['종가']))
-            print("{3}, {0} > {2} and {1} < {2}".format(disparityToday, disparityYesterday, percent, disparityToday > percent and disparityYesterday < percent))
+            print("종가 : {0} // MA : {1}, 1종가 : {2} // 1MA : {3}".format(df.loc[0]['종가'], dfMA.loc[0]['종가'],
+                                                                        df.loc[1]['종가'], dfMA.loc[1]['종가']))
+            print("{3}, {0} > {2} and {1} < {2}".format(disparityToday, disparityYesterday, percent,
+                                                        disparityToday > percent and disparityYesterday < percent))
             return True
-        else :
+        else:
             return False
-    else :
-        if disparityToday < percent and disparityYesterday > percent :
+    else:
+        if disparityToday < percent and disparityYesterday > percent:
             return True
-        else :
+        else:
             return False
 
 
-def BollingerBand(code, N, K) :
-
+def BollingerBand(code, N, K):
     # 보이저밴드 사용되는 df 생성, [날짜, 중간밴드, 상단밴드, 하단밴드]
 
     # KOSPI DF 저장
@@ -1604,9 +1778,9 @@ def BollingerBand(code, N, K) :
     dfCode = standardizationStockSplit(dfCode)
 
     print(dfCode)
-    print(GetMovingAverageRetDF (dfCode, 20))
+    print(GetMovingAverageRetDF(dfCode, 20))
 
 
 testCode = '005930'
 
-BollingerBand(testCode, 1, 1)
+# BollingerBand(testCode, 1, 1)
