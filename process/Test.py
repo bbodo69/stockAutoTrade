@@ -125,3 +125,26 @@ pd.set_option('display.max_columns', None) # 전체 열 보기
 # print(df)
 
 print((datetime.now() - timedelta(days=100)).strftime("%Y%m%d"))
+
+dfSellResult = pd.DataFrame(columns=['code', 'buyPrice', 'amount', 'sell'])
+dfBuyResult = pd.DataFrame(columns=['code', 'buyPrice', 'amount'])
+
+dfSellResult.loc[len(dfSellResult)] = ["1", "1", "1", "1"]
+dfSellResult.loc[len(dfSellResult)] = ["2", "2", "2", "2"]
+dfSellResult.loc[len(dfSellResult)] = ["3", "3", "3", "3"]
+
+
+
+# 결과 DF 생성
+testString = "3";
+if testString in dfSellResult['code'].values:
+  # 해당 code 가 있으면 업데이트,
+  dfSellResult.loc[testString == dfSellResult['code'], ['sell']] = "Y"
+  # 없으면 새로 생성
+else :
+  data = {'code': testString, 'buyPrice': testString, 'amount': testString, 'sell': 'N'}
+  dfSellResult = pd.concat([dfSellResult, pd.DataFrame([data])], ignore_index=True)
+
+
+
+print(dfSellResult)

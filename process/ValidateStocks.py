@@ -889,7 +889,7 @@ def ValidateGoldenCross(code, dateLength, MVDay1, MVDay2):
 
     Image.SaveDFImageWithScatter2(df=df, savePath=imgFilePath, dicScatterData=dicScatter, title=code, x='날짜', y='종가')
 
-def bolengerBand(df) :
+def bolengerBand(df, profit, loss) :
     dfPer = pd.DataFrame(columns=['상한', '하한', '손익'])
 
     tmpIdx = 0
@@ -902,7 +902,11 @@ def bolengerBand(df) :
             if tmpIdx2 % 10 == 0:
                 tmpIdx += 1
 
-            totalFilePath = "excel"+str(tmpIdx)+".xlsx"
+            if not os.path.exists(datetime.datetime.now().strftime('%Y.%m.%d')):
+                # 디렉토리 생성
+                os.makedirs(datetime.datetime.now().strftime('%Y.%m.%d'))
+
+            totalFilePath = datetime.datetime.now().strftime('%Y.%m.%d') + "/excel"+str(tmpIdx)+".xlsx"
 
             print("{0} / {1}".format(tmpIdx2, len(df)))
 
@@ -918,8 +922,6 @@ def bolengerBand(df) :
             dfCode = dataProcessing.addBBTrend(dfCode, 30, 2)
 
             # dfCode['매수판단1'] = dfCode['종가'] - dfCode['하한선20'].shift()
-
-
 
             for idx2, row2 in dfCode.iterrows():
 
@@ -944,29 +946,25 @@ def bolengerBand(df) :
                     dfCode.at[idx2, '매수가대비%저'] = round(low_price / buy_price, 3) * 100
                     dfCode.at[idx2, '매수'] = "Y"
 
-            dfCode = dataProcessing.addInOut(dfCode, 1.05, 0.95)
+            dfCode = dataProcessing.addInOut(dfCode, profit, loss)
 
-            for idx3, row3 in dfCode.iterrows():
+            # for idx3, row3 in dfCode.iterrows():
+            #     if '매수' not in dfCode.columns:
+            #         break
+            #     if '수익' not in dfCode.columns:
+            #         break
+            #     if (dfCode.index.get_loc(idx3) + 1 >= len(dfCode)):
+            #         continue
+            #     next_date = dfCode.index[dfCode.index.get_loc(idx3) + 1]
+            #     if row3['매수'] == "Y":
+            #         dfPer.loc[len(dfPer)] = [row3['매수가대비%고'], row3['매수가대비%저'], dfCode.at[next_date, '수익']]
 
-                if '매수' not in dfCode.columns:
-                    break
-
-                if '수익' not in dfCode.columns:
-                    break
-
-                if (dfCode.index.get_loc(idx3) + 1 >= len(dfCode)):
-                    continue
-                next_date = dfCode.index[dfCode.index.get_loc(idx3) + 1]
-
-                if row3['매수'] == "Y":
-                    dfPer.loc[len(dfPer)] = [row3['매수가대비%고'], row3['매수가대비%저'], dfCode.at[next_date, '수익']]
-
-            excel_collection.saveDFToAppendExcel(totalFilePath, code, dfCode)
+            dfPer = dataProcessing.addPer(dfCode, dfPer)
+            excel_collection.saveDFToAppendExcel(totalFilePath.replace(".xlsx", "_" + str(profit) +"_" + str(loss) +".xlsx"), code, dfCode)
     except Exception as e:
         dfPer.loc[len(dfPer)] = ["Err", "", e]
-
     tmpFilePath = "percent.xlsx"
-    excel_collection.saveDFToAppendExcel(tmpFilePath, "percent", dfPer)
+    excel_collection.saveDFToAppendExcel(tmpFilePath.replace(".xlsx", "_" + str(profit) +"_" + str(loss) +".xlsx"), "percent", dfPer)
 
     # os.system("shutdown /s /t 60")
 
@@ -998,16 +996,21 @@ for i in [20, 30, 40, 50, 60]:
 # for i in [10, 50, 100] :
 #     createGraphLineAndScatter(i)
 
-lstMA = [20]
-lstbuyRate = [0.97, 0.98]
-lstTakeBenefitRate = [1.05]
-lstStopLossRate = [0.95]
+lstProfit = [1.05, 1.02]
+lstLoss = [0.95]
 
-pd.set_option('display.max_columns', None)  # 전체 열 보기
+# pd.set_option('display.max_columns', None)  # 전체 열 보기
+
+
 
 df = dataProcessing.getStockCodes('KOSDAQ')
-# dfSample = df.sample(100).sort_index()
-bolengerBand(df)
+# dfSample = df.sample(1).sort_index()
+
+for i in lstProfit :
+    for j in lstLoss :
+        bolengerBand(df, i, j)
+
+
 
 
 

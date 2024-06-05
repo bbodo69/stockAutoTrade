@@ -359,8 +359,24 @@ def addBBTrend(df, MV, cons) :
 
     return df
 
+def addPer (dfCode, dfPer):
+    for idx3, row3 in dfCode.iterrows():
+        if '매수' not in dfCode.columns:
+            break
+        if '수익' not in dfCode.columns:
+            break
+        if (dfCode.index.get_loc(idx3) + 1 >= len(dfCode)):
+            continue
+        next_date = dfCode.index[dfCode.index.get_loc(idx3) + 1]
+        if row3['매수'] == "Y":
+            dfPer.loc[len(dfPer)] = [row3['매수가대비%고'], row3['매수가대비%저'], dfCode.at[next_date, '수익']]
+
+    return dfPer
+
 
 def addInOut (df, profit, loss):
+
+    print("profit : {0}, loss : {1}".format(profit, loss))
 
     if '매수' not in df.columns:
         return df
@@ -371,6 +387,7 @@ def addInOut (df, profit, loss):
 
         if(df.index.get_loc(idx) + 1 >= len(df)):
             continue
+
         if(df.index.get_loc(idx) - 1 < 0):
             continue
 
