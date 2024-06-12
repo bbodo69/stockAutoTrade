@@ -4,8 +4,8 @@
   "masterFilePath": "buyCode.json",
   "buy_flag": true,
   "buy_rate": 0.99,
-  "sell_rate": 1.03,
-  "stop_loss": 0.93,
+  "sell_rate": 1.05,
+  "stop_loss": 0.95,
   "order_price": 500000,
   "key_sample": "value_sample"
 }

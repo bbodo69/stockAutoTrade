@@ -148,3 +148,15 @@ else :
 
 
 print(dfSellResult)
+
+buycodes = []
+buycodes.append("001231")
+buycodes.append("001232")
+buycodes.append("001233")
+
+
+print(buycodes)
+if "001234" in buycodes:
+  print("있음")
+else:
+  print("업슴")

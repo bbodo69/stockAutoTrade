@@ -1,4 +1,6 @@
 import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from PyQt5.QtWidgets import *
 from PyQt5.QAxContainer import *
 from PyQt5.QtCore import QEventLoop, QSize
@@ -19,7 +21,6 @@ class Values():
         ####### 계좌 관련 변수
         self.account_num = 0
 
-
 class MyWindow(QMainWindow):
     # QMainWindow 를 상속
     delay = 3.6
@@ -27,8 +28,11 @@ class MyWindow(QMainWindow):
     def __init__(self):  # 기본값 설정
 
         ####### 계좌 관련 변수
+        self.total_asset = 0
         self.deposit = 0
         self.out_deposit = 0
+        self.avail_deposit = 0
+        self.estimated_balance = 0
         self.account_num = account_num
         self.use_money = 0
         self.use_money_percent = 0
@@ -102,7 +106,10 @@ class MyWindow(QMainWindow):
         global account_stock_dict
         global deposit
         global out_deposit
+        global total_asset
         global stocksCnt
+        global avail_deposit
+        global estimated_balance
 
         print("요청이름 : " + rqname)
 
@@ -113,14 +120,22 @@ class MyWindow(QMainWindow):
                                                    "예수금")
             self.deposit = int(self.deposit)
             deposit = self.deposit
+
             self.out_deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
                                                        "출금가능금액")
             self.out_deposit = int(self.out_deposit)
             out_deposit = self.out_deposit
 
+
+            self.avail_deposit = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
+                                                       "주문가능금액")
+            self.avail_deposit = int(self.avail_deposit)
+            avail_deposit = self.avail_deposit
+
+
             self.opw00001_req_loop.exit()
 
-            print('deposit : {0}, out_deposit : {1}'.format(deposit, out_deposit))
+            print('deposit : {0}, out_deposit : {1}, avail_deposit : {2}'.format(deposit, out_deposit, avail_deposit))
 
         # 총매입금액
         if rqname == "opw00018_req":
@@ -128,6 +143,11 @@ class MyWindow(QMainWindow):
             total_buy_money = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString", trcode, rqname, 0,
                                                       "총매입금액")
             self.total_buy_money = int(total_buy_money)
+
+            self.estimated_balance = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0,
+                                                         "총평가금액")
+            estimated_balance = self.estimated_balance
+
             # 보유 종목 가져오기
             rows = self.kiwoom.dynamicCall("GetRepeatCnt(QString, QString)", trcode, rqname)
             stocksCnt = rows
@@ -188,7 +208,6 @@ class MyWindow(QMainWindow):
                     self.detail_account_mystock_loop.exit()
                     self.detail_account_mystock(values.account_num, sPrevNext="2")
                 else:
-                    print(2222)
                     self.detail_account_mystock_loop.exit()
 
         if rqname == "opt10086_pre_req":
@@ -213,6 +232,19 @@ class MyWindow(QMainWindow):
             # self.opt10086_pre_req_loop.exit()
             print("opt10086_pre_req 끝")
 
+        if rqname == "opw00003_req":
+            print("rqName = opw00003_req")
+            self.total_asset = self.kiwoom.dynamicCall("GetCommData(QString, QString, int, QString)", trcode, rqname, 0, "추정예탁자산")
+
+            print(self.total_asset)
+            self.total_asset = int(self.total_asset)
+            total_asset = self.total_asset
+
+            print("opw00003_req 끝")
+            self.opw00003_req_loop.exit()
+
+
+
     def get_account_info(self):
         print("get_account_info 시작")
         account_list = self.kiwoom.dynamicCall("GetLoginInfo(QString)", "ACCNO")
@@ -229,9 +261,7 @@ class MyWindow(QMainWindow):
         self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00018_req", "opw00018", sPrevNext,
                                 "0111")
         # CommRqData
-        print(1)
         self.detail_account_mystock_loop.exec()
-        print(2)
         print("detail_account_mystock 종료")
 
     def get_deposit(self, account, sPrevNext="0"):
@@ -250,11 +280,26 @@ class MyWindow(QMainWindow):
 
         self.opw00001_req_loop.exec_()
 
+    def get_total_asset(self, account, sPrevNext="0"):
+
+        self.opw00003_req_loop =QEventLoop()
+        print("get_total_asset 시작")
+
+        self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "계좌번호", account)
+        self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "비밀번호", "0000")
+        self.kiwoom.dynamicCall("SetInputValue(QString, QString)", "상장폐지조회구분", "1")
+        self.kiwoom.dynamicCall("CommRqData(QString, QString, int, QString)", "opw00003_req", "opw00003", sPrevNext,
+                                "0113")
+
+        self.opw00003_req_loop.exec_()
+
+
 
 if __name__ == "__main__":
     try:
         dfSellResult = pd.DataFrame(columns=['code', 'buyPrice', 'amount', 'sell'])
         dfBuyResult = pd.DataFrame(columns=['code', 'buyPrice', 'amount'])
+        lineMessege = ""
 
         # 변수 클래스 저장
         values = Values()
@@ -286,6 +331,8 @@ if __name__ == "__main__":
         df_targetCodesInfo = pd.DataFrame([])
         BizError = ""
 
+        buyCodes = []
+
         app = QApplication(sys.argv)
         myWindow = MyWindow()
 
@@ -300,7 +347,7 @@ if __name__ == "__main__":
 
         # 예수금 가져오기
         myWindow.get_deposit(account_num)
-        print("예수금 : {0}, 출금가능금액 : {1}".format(deposit, out_deposit))
+        print("예수금 : {0}, 출금가능금액 : {1}, 주문가능금액 : {2}".format(deposit, out_deposit, avail_deposit))
 
         # "code" 열에 종목 코드 존재
         dfBuyList = pd.read_json(masterFilePath)
@@ -313,7 +360,8 @@ if __name__ == "__main__":
         print(account_stock_dict)
 
         while (True):
-            if datetime.datetime.now().hour >= 16:
+
+            if datetime.datetime.now().hour >= 16 or datetime.datetime.now().hour <= 8:
                 print(datetime.datetime.now().hour)
                 break
 
@@ -344,7 +392,7 @@ if __name__ == "__main__":
                             data = {'code': i, 'buyPrice': buy_price, 'amount': stockAmount, 'sell': 'N'}
                             dfSellResult = pd.concat([dfSellResult, pd.DataFrame([data])], ignore_index=True)
 
-                        if buy_price * sellRate > nowPrice:  # 체결가가 매입금액의 n% 이상일 때 진행
+                        if buy_price * sellRate > nowPrice and buy_price * stopLoss < nowPrice:  # 체결가가 매입금액의 n% 이상일 때 진행
                             continue
 
                         if useTradeAlgorithm:  # 거래에 사용되는 알고리즘 있으면 여기서 지정
@@ -360,6 +408,9 @@ if __name__ == "__main__":
 
                         myWindow.sell_Stock(code, possibleQuantity, sellPrice, account_num)
                         dfSellResult.loc[i == dfSellResult['code'], ['sell']] = "Y"
+
+                        lineMessege = lineMessege + "\n" + "매도 / " + code
+
                     except Exception as e:
                         BizError += "\n매도 : " + str(e)
 
@@ -368,13 +419,9 @@ if __name__ == "__main__":
 
             # 매수
             if buyFlag:
-
-                # 체결 정보 가져오기
-                MyWindow.receive_Chejan()
-
                 for idx, row in dfBuyList.iterrows():
                     try:
-                        if deposit < amount:
+                        if avail_deposit < amount:
                             break
                         code = row['code']
                         # dfMinute = dataProcessing.GetStockPriceMinute(code)
@@ -396,7 +443,14 @@ if __name__ == "__main__":
                             continue
                         if code in account_stock_dict:  # 보유 종목에 대해서 매수 진행 X
                             continue
+                        if code in buyCodes:
+                            continue
+
+                        # 매수를 했으면 임시 배열에 넣기
+                        buyCodes.append(code)
+
                         myWindow.buy_Stock(code, quantity, buyPrice, account_num)
+                        lineMessege = lineMessege + "\n" + "매수 / " + code
 
                         # 결과 DF 생성
                         if row['code'] not in dfBuyResult['code'].values:
@@ -417,12 +471,18 @@ if __name__ == "__main__":
             time.sleep(20)
 
         if not BizError == "":
-            dToday = datetime.now().strftime("%Y-%m-%d")
+            dToday = datetime.datetime.now().strftime("%Y-%m-%d")
             sSubject = dToday + "Error_AutoTrade"
             sSender = 'yrkim1989@gmail.com'
             lstReceiver = ['yrkim1989@gmail.com', 'bbodo629@gmail.com']
             sender_collection.SendEmail(sSubject, {BizError}, {}, sSender, lstReceiver)
         print("complete")
+
+        MyWindow.get_total_asset(myWindow, account_num, 0)
+        nowDate = datetime.datetime.now().strftime('%Y.%m.%d')
+        lineMessege = nowDate + "\n총잔고 : " + str(total_asset) + "\n주문가능금액 : " + str(avail_deposit) + "\n" + lineMessege
+
+        sender_collection.SendLine(lineMessege)
 
         # 매수, 매도 진행 후 KOSPI 필터링 정보 JSON 파일 저장. process.ValidateStocks.saveSortingCode(saveFilePath) 함수 사용 밑에 넣기
 
