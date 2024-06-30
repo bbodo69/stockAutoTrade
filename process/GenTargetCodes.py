@@ -33,15 +33,25 @@ def BBandCheck(code, MV, cons):
     else:
         pass
 
-dfCodes = pd.DataFrame(columns=['code', 'buyPrice', 'trend'])
+def RSICheck(code, period):
+    df = dataProcessing.GetStockPrice(code, 60)
+    df = dataProcessing.addRSI(df, 14)
+    if df.iloc[-1]["RSI"] < 30 and df.iloc[-2]["RSI"] < 30 and df.iloc[-3]["RSI"] < 30 and df.iloc[-4]["RSI"] < 30 and df.iloc[-5]["RSI"] < 30:
+        # print("{0} / {1} / {2}".format(df.iloc[-2]["하한선"+str(MV)], df.iloc[-1]["하한선"+str(MV)], code))
+        return {"code":code}
+    else:
+        pass
+
+
+dfCodes = pd.DataFrame(columns=['code'])
 
 df = dataProcessing.getStockCodes('KOSPI')
 for idx, row in df.iterrows():
     try :
         print("{0} / {1}".format(idx, len(df)))
-        result = BBandCheck(row['code'], 30, 2)
+        result = RSICheck(row['code'], 14)
         if result:
-            dfCodes.loc[len(dfCodes)] = [result['code'], round(result['매수가'], 0), result['하한선추세']]
+            dfCodes.loc[len(dfCodes)] = [result['code']]
     except Exception as e :
         dfCodes.loc[len(dfCodes)] = [result['code'], e]
 

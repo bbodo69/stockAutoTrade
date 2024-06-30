@@ -352,15 +352,14 @@ if __name__ == "__main__":
         # "code" 열에 종목 코드 존재
         dfBuyList = pd.read_json(masterFilePath)
 
-        print(dfBuyList)
+        # print(dfBuyList)
 
         myWindow.detail_account_mystock(account_num,
                                         0)  # ret = account_stock_dict[code] = {'종목명', '보유수량, '매입가, '수익률(%), '현재가, '매입금액, '매매가능수량'}
 
-        print(account_stock_dict)
+        # print(account_stock_dict)
 
         while (True):
-
             if datetime.datetime.now().hour >= 16 or datetime.datetime.now().hour <= 8:
                 print(datetime.datetime.now().hour)
                 break
@@ -468,16 +467,18 @@ if __name__ == "__main__":
             excel_collection.saveDFToJson("dfBuyResult.json", dfBuyResult)
             excel_collection.saveDFToJson("dfSellResult.json", dfSellResult)
 
+            print(datetime.datetime.now())
             time.sleep(20)
 
-        if not BizError == "":
-            dToday = datetime.datetime.now().strftime("%Y-%m-%d")
-            sSubject = dToday + "Error_AutoTrade"
-            sSender = 'yrkim1989@gmail.com'
-            lstReceiver = ['yrkim1989@gmail.com', 'bbodo629@gmail.com']
-            sender_collection.SendEmail(sSubject, {BizError}, {}, sSender, lstReceiver)
         print("complete")
-
+        if not BizError == "":
+            # dToday = datetime.datetime.now().strftime("%Y-%m-%d")
+            # sSubject = dToday + "Error_AutoTrade"
+            # sSender = 'yrkim1989@gmail.com'
+            # lstReceiver = ['yrkim1989@gmail.com', 'bbodo629@gmail.com']
+            # sender_collection.SendEmail(sSubject, {BizError}, {}, sSender, lstReceiver)
+            lineMessege += "\n에러발생"
+            
         MyWindow.get_total_asset(myWindow, account_num, 0)
         nowDate = datetime.datetime.now().strftime('%Y.%m.%d')
         lineMessege = nowDate + "\n총잔고 : " + str(total_asset) + "\n주문가능금액 : " + str(avail_deposit) + "\n" + lineMessege
@@ -487,9 +488,5 @@ if __name__ == "__main__":
         # 매수, 매도 진행 후 KOSPI 필터링 정보 JSON 파일 저장. process.ValidateStocks.saveSortingCode(saveFilePath) 함수 사용 밑에 넣기
 
     except Exception as e:
-        # if datetime.datetime.now().hour < 16:
-        #     os.system("shutdown -s -t 60")
         print(e)
         print("Exception")
-
-    # app.exec_()

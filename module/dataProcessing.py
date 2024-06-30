@@ -7,6 +7,7 @@ import requests
 import operator
 from bs4 import BeautifulSoup
 import re
+import numpy as np
 
 from pykrx import stock
 
@@ -19,7 +20,6 @@ def getStockCodes(market) :
 
     # 현재 날짜 가져오기
     today = datetime.today().strftime('%Y%m%d')
-
     # 코스피 종목 목록 가져오기
     kospi_stocks = stock.get_market_ticker_list(market=market, date=today)
 
@@ -28,7 +28,6 @@ def getStockCodes(market) :
     for ticker in kospi_stocks:
         name = stock.get_market_ticker_name(ticker)
         kospi_stock_data.append([name, ticker])
-
     # DataFrame 생성
     df = pd.DataFrame(kospi_stock_data, columns=['name', 'code'])
 
@@ -359,6 +358,28 @@ def addBBTrend(df, MV, cons) :
 
     return df
 
+def addMACD(df, mv_long, mv_short, mv_signal) :
+    long_ema = df['종가'].ewm(span=mv_long, adjust=False).mean()
+    short_ema = df['종가'].ewm(span=mv_short, adjust=False).mean()
+    df["MACD"] = short_ema-long_ema
+    signal_ema = df['MACD'].ewm(span=mv_signal, adjust=False).mean()
+    df["signal"] = signal_ema
+
+    return df
+
+def addRSI(df, period):
+
+    df['변화량'] = df['종가'] - df['종가'].shift(1)
+    df['상승폭'] = np.where(df['변화량'] >= 0, df['변화량'], 0)
+    df['하락폭'] = np.where(df['변화량'] < 0, df['변화량'].abs(), 0)
+    # welles moving average
+    df['AU'] = df['상승폭'].ewm(alpha=1 / period, min_periods=period).mean()
+    df['AD'] = df['하락폭'].ewm(alpha=1 / period, min_periods=period).mean()
+    df['RS'] = df['AU'] / df['AD']
+    df['RSI'] = 100 - (100 / (1 + df['RS']))
+
+    return df
+
 def addPer (dfCode, dfPer):
     for idx3, row3 in dfCode.iterrows():
         if '매수' not in dfCode.columns:
@@ -378,11 +399,17 @@ def addInOut (df, profit, loss):
 
     print("profit : {0}, loss : {1}".format(profit, loss))
 
+    tmpCnt = 0
+
     if '매수' not in df.columns:
         return df
 
     for idx, row in df.iterrows():
-        if row['매수'] == "" or row['매수'] == "NaN":
+        # if tmpCnt > 0:
+        #     tmpCnt -= 1
+        #     continue
+
+        if row['매수'] == "" or row['매수'] == "NaN" or pd.isna(row['매수']):
             continue
 
         if(df.index.get_loc(idx) + 1 >= len(df)):
@@ -404,6 +431,7 @@ def addInOut (df, profit, loss):
                 break
             elif buyPrice * loss > row2['저가']:
                 df.at[next_date, '수익'] = 'N'
+                # tmpCnt = 20
                 break
     return df
 

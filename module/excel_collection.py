@@ -35,10 +35,15 @@ def saveDFToNewExcel(fileName, sheetName, df):
 
 def saveDFToAppendExcel(fileName, sheetName, df):
 
+    if "KOSPI" in fileName:
+        fileName.replace('KOSPI', '1')
+
+    directory = os.path.dirname(fileName)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     if not os.path.isfile(fileName):
         wb = openpyxl.Workbook()
         wb.save(fileName)
-
     with pd.ExcelWriter(fileName, mode='a') as writer:
         workBook = writer.book
         try:

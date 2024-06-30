@@ -10,6 +10,7 @@ import pandas as pd
 import datetime
 import time
 import matplotlib.pyplot as plt
+import module.sender_collection as sender_collection
 
 rootPath = 'C:\Python_Stocks'
 inputFolderPath = os.path.join(rootPath, 'input')
@@ -889,7 +890,7 @@ def ValidateGoldenCross(code, dateLength, MVDay1, MVDay2):
 
     Image.SaveDFImageWithScatter2(df=df, savePath=imgFilePath, dicScatterData=dicScatter, title=code, x='날짜', y='종가')
 
-def bolengerBand(df, profit, loss) :
+def validPattern(df, profit, loss, gubun) :
     dfPer = pd.DataFrame(columns=['상한', '하한', '손익'])
 
     tmpIdx = 0
@@ -906,45 +907,114 @@ def bolengerBand(df, profit, loss) :
                 # 디렉토리 생성
                 os.makedirs(datetime.datetime.now().strftime('%Y.%m.%d'))
 
-            totalFilePath = datetime.datetime.now().strftime('%Y.%m.%d') + "/excel"+str(tmpIdx)+".xlsx"
+            totalFilePath = datetime.datetime.now().strftime('%Y.%m.%d') + "/" + gubun + "/excel"+str(tmpIdx)+".xlsx"
 
             print("{0} / {1}".format(tmpIdx2, len(df)))
 
             code = row['code']
             dfCode = dataProcessing.GetStockPrice(code, 600)
+            # dfCode = dataProcessing.addMV(dfCode, 5)
             # dfCode = dataProcessing.addMV(dfCode, 20)
             # dfCode = dataProcessing.addMV(dfCode, 60)
+            # dfCode = dataProcessing.addMVTrend(dfCode, 5)
             # dfCode = dataProcessing.addMVTrend(dfCode, 20)
             # dfCode = dataProcessing.addMVTrend(dfCode, 60)
-            # dfCode = dataProcessing.addMVTrend(dfCode, 40)
-            # dfCode = dataProcessing.addDisparity(dfCode, 20)
-            dfCode = dataProcessing.addBolengerBand(dfCode, 30, 2)
-            dfCode = dataProcessing.addBBTrend(dfCode, 30, 2)
+            # dfCode = dataProcessing.addDisparity(dfCode, 60)
+            # dfCode = dataProcessing.addBolengerBand(dfCode, 20, 2)
+            # dfCode = dataProcessing.addBBTrend(dfCode, 30, 2)
+            # dfCode = dataProcessing.addMACD(dfCode, 26, 12, 9)
+            dfCode = dataProcessing.addRSI(dfCode, 14)
 
             # dfCode['매수판단1'] = dfCode['종가'] - dfCode['하한선20'].shift()
-
             for idx2, row2 in dfCode.iterrows():
 
                 if(dfCode.index.get_loc(idx2) + 1 >= len(dfCode)):
                     continue
-                if(dfCode.index.get_loc(idx2) - 1 < 0):
+                if(dfCode.index.get_loc(idx2) - 5 < 0):
                     continue
+                # next2_date = dfCode.index[dfCode.index.get_loc(idx2) + 2]
                 next_date = dfCode.index[dfCode.index.get_loc(idx2) + 1]
                 pre_date = dfCode.index[dfCode.index.get_loc(idx2) - 1]
+                pre2_date = dfCode.index[dfCode.index.get_loc(idx2) - 2]
+                pre3_date = dfCode.index[dfCode.index.get_loc(idx2) - 3]
+                pre4_date = dfCode.index[dfCode.index.get_loc(idx2) - 4]
+                pre5_date = dfCode.index[dfCode.index.get_loc(idx2) - 5]
 
+                # RSI 검사
+                if not (float(dfCode.loc[pre_date]['RSI']) < 30 and float(dfCode.loc[pre2_date]['RSI']) < 30 and float(dfCode.loc[pre3_date]['RSI']) < 30 and float(dfCode.loc[pre4_date]['RSI']) < 30 and float(dfCode.loc[pre5_date]['RSI']) < 30):
+                    continue
+
+                # 이격도 조건 검사
+                # if not (float(dfCode.loc[pre_date]['이격도60']) < 80):
+                #     continue
+
+                # MACD 검사
+                # if not (dfCode.loc[pre2_date]['MACD'] < dfCode.loc[pre2_date]['signal'] and dfCode.loc[pre_date]['MACD'] > dfCode.loc[pre_date]['signal']):
+                #     continue
+
+                # 이평선 추세 검사
+                # if not dfCode.loc[pre_date]['상승추세60']:
+                #     continue
+                # if not(not dfCode.loc[pre_date]['상승추세60'] and not dfCode.loc[pre_date]['상승추세20'] and dfCode.loc[pre_date]['상승추세5'] and dfCode.loc[pre2_date]['상승추세5'] and dfCode.loc[pre3_date]['상승추세5'] and dfCode.loc[pre4_date]['상승추세5']):
+                #     continue
+                # if not (dfCode.loc[pre_date]['이평선60'] < dfCode.loc[pre_date]['이평선20'] < dfCode.loc[pre_date]['이평선5']):
+                #     continue
+                # if not (dfCode.loc[pre2_date]['이평선60'] < dfCode.loc[pre2_date]['이평선20'] < dfCode.loc[pre2_date]['이평선5']):
+                #     continue
+                # if not (dfCode.loc[pre3_date]['이평선60'] < dfCode.loc[pre3_date]['이평선20'] < dfCode.loc[pre3_date]['이평선5']):
+                #     continue
+
+                # 매수가 정하기
+                # dfCode.at[idx2, '매수가'] = round(dfCode.loc[idx2]['시가']*0.98, 1)
+
+                buy_price = dfCode.loc[idx2]['시가']
+
+                dfCode.at[idx2, '매수가'] = buy_price
+                dfCode.at[idx2, '매수'] = "Y"
+                high_price = dfCode.loc[next_date:]['고가'].max()
+                low_price = dfCode.loc[next_date:]['저가'].min()
+
+                dfCode.at[idx2, '매수가대비%고'] = round(high_price / buy_price, 3) * 100
+                dfCode.at[idx2, '매수가대비%저'] = round(low_price / buy_price, 3) * 100
+                # if dfCode.loc[pre_date]['종가'] < buy_price < dfCode.loc[idx2]['고가'] and dfCode.loc[idx2]['시가'] < buy_price:
+                #     dfCode.at[idx2, '매수'] = "Y"
+
+                    # high_price = dfCode.loc[next2_date:]['고가'].max()
+                    # low_price = dfCode.loc[next2_date:]['저가'].min()
+
+                    # dfCode.at[idx2, '매수가대비%고'] = round(high_price / buy_price, 3) * 100
+                    # dfCode.at[idx2, '매수가대비%저'] = round(low_price / buy_price, 3) * 100
                 # if(dfCode.loc[idx2]['저가'] < dfCode.loc[pre_date]['하한선20'] and dfCode.loc[idx2]['상승추세20'] and dfCode.loc[idx2]['상승추세60']) :
-                if (dfCode.loc[idx2]['저가'] < dfCode.loc[pre_date]['하한선30'] and dfCode.loc[idx2]['하한선추세30'] and dfCode.loc[idx2]['거래량'] > 0):
+                # if (dfCode.loc[idx2]['저가'] < dfCode.loc[pre_date]['하한선30'] and dfCode.loc[idx2]['하한선추세30'] and dfCode.loc[idx2]['거래량'] > 0):
+                # if dfCode.loc[next_date]['저가'] < dfCode.loc[idx2]['하한선30'] and dfCode.loc[idx2]['하한선추세30'] and dfCode.loc[pre_date]['하한선추세30'] and dfCode.loc[next_date]['거래량'] > 0:
+                    # buy_price = dfCode.loc[pre_date]['하한선30']
+                    # high_price = dfCode.loc[next_date:]['고가'].max()
+                    # low_price = dfCode.loc[next_date:]['저가'].min()
+                    #
+                    # dfCode.at[idx2, '매수가'] = buy_price
+                    # dfCode.at[idx2, '매수이후최고가'] = high_price
+                    # dfCode.at[idx2, '매수가대비%고'] = round(high_price / buy_price, 3) * 100
+                    # dfCode.at[idx2, '매수이후최저가'] = low_price
+                    # dfCode.at[idx2, '매수가대비%저'] = round(low_price / buy_price, 3) * 100
+                    # dfCode.at[idx2, '매수'] = "Y"
 
-                    buy_price = dfCode.loc[pre_date]['하한선30']
-                    high_price = dfCode.loc[next_date:]['고가'].max()
-                    low_price = dfCode.loc[next_date:]['저가'].min()
+                    # dfCode.at[idx2, '매수가'] = buy_price
+                    # dfCode.at[idx2, '매수이후최고가'] = high_price
+                    # dfCode.at[idx2, '매수가대비%고'] = round(high_price / buy_price, 3) * 100
+                    # dfCode.at[idx2, '매수이후최저가'] = low_price
+                    # dfCode.at[idx2, '매수가대비%저'] = round(low_price / buy_price, 3) * 100
+                    # dfCode.at[idx2, '매수'] = "Y"
 
-                    dfCode.at[idx2, '매수가'] = buy_price
-                    dfCode.at[idx2, '매수이후최고가'] = high_price
-                    dfCode.at[idx2, '매수가대비%고'] = round(high_price / buy_price, 3) * 100
-                    dfCode.at[idx2, '매수이후최저가'] = low_price
-                    dfCode.at[idx2, '매수가대비%저'] = round(low_price / buy_price, 3) * 100
-                    dfCode.at[idx2, '매수'] = "Y"
+                    # buy_price = dfCode.loc[idx2]['하한선30']
+                    # high_price = dfCode.loc[next2_date:]['고가'].max()
+                    # low_price = dfCode.loc[next2_date:]['저가'].min()
+                    #
+                    # dfCode.at[next_date, '매수가'] = buy_price
+                    # dfCode.at[next_date, '매수이후최고가'] = high_price
+                    # dfCode.at[next_date, '매수가대비%고'] = round(high_price / buy_price, 3) * 100
+                    # dfCode.at[next_date, '매수이후최저가'] = low_price
+                    # dfCode.at[next_date, '매수가대비%저'] = round(low_price / buy_price, 3) * 100
+                    # dfCode.at[next_date, '매수'] = "Y"
 
             dfCode = dataProcessing.addInOut(dfCode, profit, loss)
 
@@ -958,17 +1028,15 @@ def bolengerBand(df, profit, loss) :
             #     next_date = dfCode.index[dfCode.index.get_loc(idx3) + 1]
             #     if row3['매수'] == "Y":
             #         dfPer.loc[len(dfPer)] = [row3['매수가대비%고'], row3['매수가대비%저'], dfCode.at[next_date, '수익']]
-
-            dfPer = dataProcessing.addPer(dfCode, dfPer)
             excel_collection.saveDFToAppendExcel(totalFilePath.replace(".xlsx", "_" + str(profit) +"_" + str(loss) +".xlsx"), code, dfCode)
+            dfPer = dataProcessing.addPer(dfCode, dfPer)
+
     except Exception as e:
         dfPer.loc[len(dfPer)] = ["Err", "", e]
-    tmpFilePath = "percent.xlsx"
+
+    tmpFilePath = datetime.datetime.now().strftime('%Y.%m.%d') + "/" + gubun + "/percent.xlsx"
     excel_collection.saveDFToAppendExcel(tmpFilePath.replace(".xlsx", "_" + str(profit) +"_" + str(loss) +".xlsx"), "percent", dfPer)
-
     # os.system("shutdown /s /t 60")
-
-
 
 #########################Main
 '''
@@ -996,23 +1064,45 @@ for i in [20, 30, 40, 50, 60]:
 # for i in [10, 50, 100] :
 #     createGraphLineAndScatter(i)
 
-lstProfit = [1.05, 1.02]
-lstLoss = [0.95]
+lstProfit = [1.053]
+lstLoss = [0.503]
 
 # pd.set_option('display.max_columns', None)  # 전체 열 보기
 
 
 
-df = dataProcessing.getStockCodes('KOSDAQ')
-# dfSample = df.sample(1).sort_index()
+# df = dataProcessing.getStockCodes('KOSPI')
+# # df = df.sample(2).sort_index()
+#
+# for i in lstProfit :
+#     for j in lstLoss :
+#         bolengerBand(df, i, j, 'KOSPI')
+#
+# lineMessege = "코스피 검증 완료"
+#
+# sender_collection.SendLine(lineMessege)
 
-for i in lstProfit :
-    for j in lstLoss :
-        bolengerBand(df, i, j)
+stockGubun = 'KOSPI'
+df = dataProcessing.getStockCodes(stockGubun)
+# df = df.sample(5).sort_index()
 
+for i in lstProfit:
+    for j in lstLoss:
+        validPattern(df, i, j, stockGubun)
 
+stockGubun = 'KOSDAQ'
+df = dataProcessing.getStockCodes(stockGubun)
+# df = df.sample(5).sort_index()
 
+for i in lstProfit:
+    for j in lstLoss:
+        validPattern(df, i, j, stockGubun)
 
+lineMessege = stockGubun + " 검증 완료"
+
+sender_collection.SendLine(lineMessege)
+
+os.system('shutdown -s -t 60')
 
 
 # for MA in lstMA :
